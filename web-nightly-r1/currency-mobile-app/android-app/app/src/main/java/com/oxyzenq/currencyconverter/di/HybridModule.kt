@@ -1,10 +1,14 @@
-package com.oxyzenq.currencyconverter.di
+/*
+ * Creativity Authored by oxyzenq 2025
+ */
+
+package com.oxyzenq.kconvert.di
 
 import android.content.Context
-import com.oxyzenq.currencyconverter.data.api.CurrencyApi
-import com.oxyzenq.currencyconverter.data.database.CurrencyDatabase
-import com.oxyzenq.currencyconverter.data.database.dao.CurrencyDao
-import com.oxyzenq.currencyconverter.data.repository.HybridCurrencyRepository
+import com.oxyzenq.kconvert.data.api.CurrencyApi
+import com.oxyzenq.kconvert.data.database.CurrencyDatabase
+import com.oxyzenq.kconvert.data.database.dao.CurrencyDao
+import com.oxyzenq.kconvert.data.repository.HybridCurrencyRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,30 +25,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object HybridModule {
 
-    @Provides
-    @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
-        val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        }
-        
-        return OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
-            .build()
-    }
-
-    @Provides
-    @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl("https://api.exchangerate-api.com/v4/")
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
+    // Removed duplicate OkHttpClient and Retrofit providers - using NetworkModule instead
 
     @Provides
     @Singleton

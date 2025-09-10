@@ -1,11 +1,16 @@
-package com.oxyzenq.currencyconverter.presentation.viewmodel
+/*
+ * Creativity Authored by oxyzenq 2025
+ */
+
+package com.oxyzenq.kconvert.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.oxyzenq.currencyconverter.data.preferences.AppPreferences
-import com.oxyzenq.currencyconverter.data.repository.CurrencyRepository
-import com.oxyzenq.currencyconverter.data.repository.ConversionResult
-import com.oxyzenq.currencyconverter.data.model.Currency
+import com.oxyzenq.kconvert.data.preferences.AppPreferences
+import com.oxyzenq.kconvert.data.repository.CurrencyRepository
+import android.content.Context
+import com.oxyzenq.kconvert.data.repository.ConversionResult
+import com.oxyzenq.kconvert.data.model.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -41,15 +46,22 @@ class KconvertViewModel @Inject constructor(
             initialValue = false
         )
 
+    // Haptics enabled setting
+    val hapticsEnabled: StateFlow<Boolean> = appPreferences.hapticsEnabled
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
+
     init {
-        // Load initial data
-        loadInitialData()
+        // Initial setup - context will be provided via initializeApp()
     }
 
     /**
      * Load initial data and check auto update setting
      */
-    private fun loadInitialData() {
+    fun initializeApp(context: Context) {
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(isLoading = true)
@@ -67,15 +79,50 @@ class KconvertViewModel @Inject constructor(
                     isLoading = false
                 )
 
-                // Check auto update setting
+                // Check auto update setting and sync data if needed
                 val autoUpdate = appPreferences.getAutoUpdateOnLaunch()
-                if (autoUpdate && currencyCount == 0) {
-                    refreshCurrencyData()
+                if (autoUpdate) {
+                    if (currencyCount == 0) {
+                        // First launch - fetch data
+                        refreshData(context)
+                    } else {
+                        // Check if data needs refresh (smart sync)
+                        val syncResult = currencyRepository.syncDataIfNeeded(context)
+                        syncResult.fold(
+                            onSuccess = { message ->
+                                if (message != "Data is up to date") {
+                                    val newLastUpdate = currencyRepository.getLastUpdateTimestamp()
+                                    _uiState.value = _uiState.value.copy(
+                                        dataIndicator = "this data has been updated last seen $newLastUpdate"
+                                    )
+                                    showNotification("Auto-sync completed", NotificationType.SUCCESS)
+                                }
+                            },
+                            onFailure = { 
+                                // Silent fail for auto-sync, continue with cached data
+                            }
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = "Failed to load initial data: ${e.message}"
+                )
+            }
+        }
+    }
+
+    /**
+     * Set haptics enabled preference
+     */
+    fun setHapticsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            try {
+                appPreferences.setHapticsEnabled(enabled)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = "Failed to update haptics setting: ${e.message}"
                 )
             }
         }
@@ -158,34 +205,55 @@ class KconvertViewModel @Inject constructor(
     /**
      * Refresh currency data from API
      */
-    fun refreshCurrencyData() {
+    fun refreshData(context: Context) {
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(isRefreshing = true)
                 
-                val result = currencyRepository.fetchAndSaveCurrencyData()
+                val result = currencyRepository.fetchAndSaveCurrencyData(context)
                 
-                result.fold(
-                    onSuccess = { message ->
-                        val lastUpdate = currencyRepository.getLastUpdateTimestamp()
-                        _uiState.value = _uiState.value.copy(
-                            dataIndicator = "this data has been updated last seen $lastUpdate",
-                            isRefreshing = false,
-                            error = null
-                        )
-                        showNotification("Data refreshed successfully", NotificationType.SUCCESS)
-                    },
-                    onFailure = { error ->
-                        _uiState.value = _uiState.value.copy(
-                            isRefreshing = false,
-                            error = "Failed to refresh data: ${error.message}"
-                        )
-                    }
-                )
+                if (result.isSuccess) {
+                    // Force reload currencies and update UI state
+                    loadCurrencies()
+                    _uiState.value = _uiState.value.copy(
+                        isRefreshing = false,
+                        dataIndicator = "Data refreshed successfully at ${System.currentTimeMillis()}",
+                        error = null
+                    )
+                    showNotification("Ultra-secure data refreshed successfully", NotificationType.SUCCESS)
+                } else {
+                    showNotification("Failed to refresh data: ${result.exceptionOrNull()?.message}", NotificationType.ERROR)
+                    _uiState.value = _uiState.value.copy(
+                        isRefreshing = false,
+                        error = "Failed to refresh data: ${result.exceptionOrNull()?.message}"
+                    )
+                }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isRefreshing = false,
                     error = "Refresh error: ${e.message}"
+                )
+            }
+        }
+    }
+
+    /**
+     * Load currencies from repository
+     */
+    private fun loadCurrencies() {
+        viewModelScope.launch {
+            try {
+                currencyRepository.getAllCurrencies()
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    isRefreshing = false,
+                    error = null
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    isRefreshing = false,
+                    error = "Failed to load currencies: ${e.message}"
                 )
             }
         }
@@ -200,7 +268,7 @@ class KconvertViewModel @Inject constructor(
                 val result = currencyRepository.deleteAllCurrencyData()
                 
                 result.fold(
-                    onSuccess = { message ->
+                    onSuccess = { _ ->
                         _uiState.value = _uiState.value.copy(
                             dataIndicator = "null, no data please click button 'refresh data of price' to update/fetching",
                             conversionResult = null,
@@ -274,20 +342,22 @@ class KconvertViewModel @Inject constructor(
      * Show confirmation dialog
      */
     fun showConfirmationDialog(type: ConfirmationType) {
+        val (title, _) = when (type) {
+            ConfirmationType.REFRESH_DATA -> "Refresh Data" to "Are you sure you want to refresh all currency data? This will fetch the latest exchange rates."
+            ConfirmationType.DELETE_DATA -> "Delete All Data" to "Are you sure you want to delete all stored currency data? This action cannot be undone."
+            ConfirmationType.EXIT_APP -> "Exit App Kconvert?" to "Are you sure you want to exit the application?"
+        }
         _uiState.value = _uiState.value.copy(
             confirmationDialog = ConfirmationDialogState(
                 isVisible = true,
                 type = type,
-                title = when (type) {
-                    ConfirmationType.REFRESH_DATA -> "Are you sure to update sir?"
-                    ConfirmationType.DELETE_DATA -> "Are you sure to delete the data of price sir? This can't be undone!"
-                }
+                title = title
             )
         )
     }
 
     /**
-     * Hide confirmation dialog
+     * Confirmation dialog state
      */
     fun hideConfirmationDialog() {
         _uiState.value = _uiState.value.copy(
@@ -298,14 +368,20 @@ class KconvertViewModel @Inject constructor(
     /**
      * Handle confirmation dialog result
      */
-    fun onConfirmationResult(confirmed: Boolean) {
-        val dialogType = _uiState.value.confirmationDialog.type
+    fun onConfirmationResult(confirmed: Boolean, context: Context) {
+        val currentDialog = _uiState.value.confirmationDialog
         hideConfirmationDialog()
         
         if (confirmed) {
-            when (dialogType) {
-                ConfirmationType.REFRESH_DATA -> refreshCurrencyData()
+            when (currentDialog.type) {
+                ConfirmationType.REFRESH_DATA -> refreshData(context)
                 ConfirmationType.DELETE_DATA -> deleteAllData()
+                ConfirmationType.EXIT_APP -> {
+                    // Exit the app
+                    if (context is android.app.Activity) {
+                        context.finishAffinity()
+                    }
+                }
             }
         }
     }
@@ -381,7 +457,8 @@ data class NotificationState(
  */
 enum class ConfirmationType {
     REFRESH_DATA,
-    DELETE_DATA
+    DELETE_DATA,
+    EXIT_APP
 }
 
 /**

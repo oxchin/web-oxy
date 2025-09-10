@@ -1,4 +1,8 @@
-package com.oxyzenq.currencyconverter.presentation.components
+/*
+ * Creativity Authored by oxyzenq 2025
+ */
+
+package com.oxyzenq.kconvert.presentation.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
@@ -31,15 +35,6 @@ fun CurrencyStrengthGauge(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Currency Strength Comparison",
-            style = MaterialTheme.typography.h6.copy(
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
         
         if (fromCurrency != null && toCurrency != null && exchangeRate != null) {
             // Calculate gauge position based on exchange rate
@@ -75,7 +70,7 @@ fun CurrencyStrengthGauge(
                 }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp)) // Increased from 16dp to 32dp (2rem)
             
             // Currency labels
             Row(
@@ -99,18 +94,24 @@ fun CurrencyStrengthGauge(
             }
         } else {
             // Placeholder when no data
-            Box(
-                modifier = Modifier.size(200.dp),
-                contentAlignment = Alignment.Center
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Canvas(
-                    modifier = Modifier.fillMaxSize()
+                Box(
+                    modifier = Modifier.size(200.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    drawGauge(0.5f) // Neutral position
+                    Canvas(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        drawGauge(0.5f) // Neutral position for placeholder
+                    }
                 }
                 
+                Spacer(modifier = Modifier.height(16.dp))
+                
                 Text(
-                    text = "Select currencies\nto compare",
+                    text = "Select currencies to compare",
                     style = MaterialTheme.typography.body2.copy(
                         color = Color(0xFF94A3B8)
                     )

@@ -1,4 +1,8 @@
-package com.oxyzenq.currencyconverter.ui.theme
+/*
+ * Creativity Authored by oxyzenq 2025
+ */
+
+package com.oxyzenq.kconvert.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

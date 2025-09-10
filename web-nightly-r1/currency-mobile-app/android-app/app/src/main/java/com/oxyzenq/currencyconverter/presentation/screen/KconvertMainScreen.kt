@@ -1,36 +1,472 @@
-package com.oxyzenq.currencyconverter.presentation.screen
+/*
+ * Creativity Authored by oxyzenq 2025
+ */
 
+package com.oxyzenq.kconvert.presentation.screen
+
+import android.content.Context
+import androidx.compose.animation.core.*
+import androidx.compose.animation.*
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.draw.scale
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.Canvas
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.ShowChart
+import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.border
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.unit.Dp
+import com.oxyzenq.kconvert.ui.theme.Typography
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.oxyzenq.currencyconverter.data.model.Currency
-import com.oxyzenq.currencyconverter.presentation.components.ConfirmationDialog
-import com.oxyzenq.currencyconverter.presentation.components.CurrencyStrengthGauge
-import com.oxyzenq.currencyconverter.presentation.components.FloatingNotification
-import com.oxyzenq.currencyconverter.presentation.viewmodel.ConfirmationType
-import com.oxyzenq.currencyconverter.presentation.viewmodel.KconvertViewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.oxyzenq.kconvert.R
+import com.oxyzenq.kconvert.BuildConfig
+import com.oxyzenq.kconvert.data.model.Currency
+import com.oxyzenq.kconvert.presentation.components.ConfirmationDialog
+import com.oxyzenq.kconvert.presentation.components.CurrencyStrengthGauge
+import com.oxyzenq.kconvert.presentation.components.FloatingNotification
+import com.oxyzenq.kconvert.presentation.components.BottomSheetSettingsPanel
+import com.oxyzenq.kconvert.presentation.viewmodel.ConfirmationType
+import com.oxyzenq.kconvert.presentation.viewmodel.KconvertViewModel
+import com.oxyzenq.kconvert.data.local.SettingsDataStore
+import com.oxyzenq.kconvert.utils.StorageUtils
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.draw.rotate as modifierRotate
+import androidx.compose.ui.graphics.drawscope.rotate as drawRotate
+import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.ui.res.painterResource
+
+/**
+ * Feature highlight component for the header card
+ */
+@Composable
+private fun FeatureHighlight(
+    icon: ImageVector,
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF93C5FD).copy(alpha = 0.3f),
+                            Color(0xFFC4B5FD).copy(alpha = 0.2f)
+                        )
+                    )
+                )
+                .border(
+                    1.dp,
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            Color(0xFF93C5FD).copy(alpha = 0.5f),
+                            Color(0xFFC4B5FD).copy(alpha = 0.5f)
+                        )
+                    ),
+                    RoundedCornerShape(12.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = text,
+                tint = Color(0xFF93C5FD),
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        val textBrush = Brush.horizontalGradient(
+            colors = listOf(
+                Color(0xFF93C5FD).copy(alpha = 0.9f),
+                Color(0xFFC4B5FD).copy(alpha = 0.9f)
+            )
+        )
+        Text(
+            text = buildAnnotatedString {
+                pushStyle(SpanStyle(brush = textBrush, fontWeight = FontWeight.Medium))
+                append(text)
+                pop()
+            },
+            style = MaterialTheme.typography.caption.copy(
+                fontSize = 11.sp
+            ),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+/**
+ * Kconvert logo painter helper: use kconvert_logo_orig when available, otherwise fallback
+ * to the previous kconvert_logo_new resource.
+ */
+@Composable
+private fun KconvertLogoImage(
+    contentDescription: String?,
+    modifier: Modifier = Modifier
+) {
+    // Load the official orig logo (old assets removed)
+    val painter = painterResource(id = R.drawable.kconvert_logo_orig)
+    Image(
+        painter = painter,
+        contentDescription = contentDescription,
+        modifier = modifier,
+        contentScale = ContentScale.Fit
+    )
+}
+
+/**
+ * Bouncy press effect modifier: shrinks on press, overshoots slightly on release, then settles.
+ */
+@Composable
+private fun bouncyPress(interactionSource: MutableInteractionSource, pressedScale: Float = 0.94f): Modifier {
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) pressedScale else 1f,
+        animationSpec = if (pressed) tween(durationMillis = 110, easing = FastOutLinearInEasing)
+        else spring(dampingRatio = 0.35f, stiffness = Spring.StiffnessMediumLow),
+        label = "bouncy_press_scale"
+    )
+    return Modifier.scale(scale)
+}
+
+/**
+ * Animated background component with smooth transitions and particle effects
+ */
+@Composable
+fun AnimatedBackground(isScrolling: Boolean, isFullscreen: Boolean = true, darkLevel: Int = 0) {
+    var screenWidth by remember { mutableStateOf(0f) }
+    var screenHeight by remember { mutableStateOf(0f) }
+
+    // Particle lists
+    val shootingStars = remember { mutableStateListOf<ShootingStar>() }
+    val bubbles = remember { mutableStateListOf<Bubble>() }
+
+    // Pause scaling while the list is actively scrolling to avoid jank
+    val targetScale = if (isScrolling) 1.0f else 1.05f
+    val scale by animateFloatAsState(
+        targetValue = targetScale,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+        label = "background_scale"
+    )
+
+    // Animation trigger for particles
+    val infiniteTransition = rememberInfiniteTransition(label = "particle_animation")
+    val animationTrigger by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 100, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "animation_trigger"
+    )
+
+    // Update particles
+    LaunchedEffect(animationTrigger) {
+        if (screenWidth > 0 && screenHeight > 0) {
+            // Update shooting stars
+            shootingStars.removeAll { star ->
+                star.x += star.speed * 2f
+                star.y += star.speed * 1.5f
+                star.alpha -= 0.02f
+                star.x > screenWidth || star.y > screenHeight || star.alpha <= 0f
+            }
+
+            // Update bubbles
+            bubbles.removeAll { bubble ->
+                bubble.y -= bubble.speed
+                bubble.alpha -= 0.008f
+                bubble.y < -bubble.size || bubble.alpha <= 0f
+            }
+
+            // Add new shooting star (1-2 every few seconds)
+            if (kotlin.random.Random.nextFloat() < 0.008f && shootingStars.size < 3) {
+                shootingStars.add(
+                    ShootingStar(
+                        x = kotlin.random.Random.nextFloat() * screenWidth * 0.3f - 100f,
+                        y = kotlin.random.Random.nextFloat() * screenHeight * 0.3f - 50f,
+                        speed = kotlin.random.Random.nextFloat() * 8f + 12f,
+                        alpha = 1f,
+                        size = kotlin.random.Random.nextFloat() * 3f + 2f
+                    )
+                )
+            }
+
+            // Add new bubble (constant with random delay)
+            if (kotlin.random.Random.nextFloat() < 0.15f && bubbles.size < 8) {
+                bubbles.add(
+                    Bubble(
+                        x = kotlin.random.Random.nextFloat() * screenWidth,
+                        y = screenHeight + 50f,
+                        speed = kotlin.random.Random.nextFloat() * 2f + 1f,
+                        alpha = kotlin.random.Random.nextFloat() * 0.6f + 0.4f,
+                        size = kotlin.random.Random.nextFloat() * 8f + 4f
+                    )
+                )
+            }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Background wallpaper with scaling and darkening
+        Image(
+            painter = painterResource(id = R.drawable.hdr_stellar_edition_v2),
+            contentDescription = "HDR Stellar Background",
+            modifier = Modifier
+                .fillMaxSize()
+                .scale(scale),
+            contentScale = ContentScale.Crop,
+            colorFilter = if (isFullscreen) {
+                ColorFilter.tint(
+                    Color.Black.copy(alpha = 0.18f),
+                    blendMode = BlendMode.Darken
+                )
+            } else null
+        )
+
+        // Extra adjustable dark overlay from Settings (0..100 => 0..0.5 alpha)
+        val adjustableAlpha = (darkLevel.coerceIn(0, 100) / 100f) * 0.5f
+        if (adjustableAlpha > 0f) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = adjustableAlpha))
+            )
+        }
+
+        // Particle overlay
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .onSizeChanged { size ->
+                    screenWidth = size.width.toFloat()
+                    screenHeight = size.height.toFloat()
+                }
+        ) {
+            // Draw shooting stars
+            shootingStars.forEach { star ->
+                // Star trail effect
+                for (i in 0..3) {
+                    val trailAlpha = star.alpha * (1f - i * 0.25f)
+                    val trailX = star.x - i * star.speed * 0.5f
+                    val trailY = star.y - i * star.speed * 0.375f
+
+                    if (trailAlpha > 0f) {
+                        drawCircle(
+                            color = Color.White.copy(alpha = trailAlpha),
+                            radius = star.size * (1f - i * 0.2f),
+                            center = Offset(trailX, trailY)
+                        )
+                    }
+                }
+            }
+
+            // Draw bubbles
+            bubbles.forEach { bubble ->
+                drawCircle(
+                    color = Color.White.copy(alpha = bubble.alpha * 0.3f),
+                    radius = bubble.size,
+                    center = Offset(bubble.x, bubble.y),
+                    style = Stroke(width = 1.dp.toPx())
+                )
+
+                // Inner glow
+                drawCircle(
+                    color = Color.White.copy(alpha = bubble.alpha * 0.1f),
+                    radius = bubble.size * 0.7f,
+                    center = Offset(bubble.x, bubble.y)
+                )
+            }
+        }
+
+        // Subtle overlay gradient: no top darkening in either mode; just a soft bottom vignette
+        val topAlpha = 0.0f
+        val bottomAlpha = if (isFullscreen) 0.24f else 0.16f
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = topAlpha),
+                            Color.Transparent,
+                            Color.Black.copy(alpha = bottomAlpha)
+                        )
+                    )
+                )
+        )
+    }
+}
+
+/**
+ * Elegant gradient info card (unified style)
+ */
+@Composable
+private fun ElegantInfoCard(
+    title: String,
+    modifier: Modifier = Modifier,
+    titleIcon: (@Composable (() -> Unit))? = null,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val inter = FontFamily(Font(R.font.inter))
+    val cardBg = Brush.verticalGradient(
+        colors = listOf(
+            Color(0xFF0B1530).copy(alpha = 0.7f),
+            Color(0xFF0F1F3F).copy(alpha = 0.8f)
+        )
+    )
+    val titleBrush = Brush.horizontalGradient(
+        colors = listOf(
+            Color(0xFF93C5FD), // blue-300
+            Color(0xFFC4B5FD)  // violet-300
+        )
+    )
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(color = Color.Transparent)
+    ) {
+        // Outer glow
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.Black.copy(alpha = 0.18f))
+                .blur(40.dp)
+        )
+        // Main card
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .background(cardBg)
+                .border(1.dp, Color.White.copy(alpha = 0.06f), RoundedCornerShape(16.dp))
+                .padding(16.dp)
+        ) {
+            // Title row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                if (titleIcon != null) {
+                    titleIcon()
+                    Spacer(Modifier.width(8.dp))
+                }
+                Text(
+                    text = buildAnnotatedString {
+                        pushStyle(SpanStyle(brush = titleBrush, fontWeight = FontWeight.SemiBold))
+                        append(title)
+                        pop()
+                    },
+                    style = MaterialTheme.typography.h6.copy(fontFamily = inter),
+                    textAlign = TextAlign.Center
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+            content()
+        }
+    }
+}
+
+/**
+ * Glassmorphism container component
+ */
+@Composable
+fun GlassmorphismContainer(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val animatedAlpha by animateFloatAsState(
+        targetValue = 0.12f,
+        animationSpec = tween(durationMillis = 800, easing = EaseInOutCubic),
+        label = "glassmorphism_alpha"
+    )
+    
+    Box(
+        modifier = modifier
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = animatedAlpha),
+                        Color.White.copy(alpha = animatedAlpha * 0.6f)
+                    )
+                ),
+                RoundedCornerShape(18.dp)
+            )
+    ) {
+        content()
+    }
+}
 
 /**
  * Main screen for Kconvert app with all 5 containers
@@ -42,8 +478,44 @@ fun KconvertMainScreen(
     val uiState by viewModel.uiState.collectAsState()
     val currencies by viewModel.currencies.collectAsState()
     val autoUpdateEnabled by viewModel.autoUpdateEnabled.collectAsState()
+    val hapticsEnabled by viewModel.hapticsEnabled.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+
+    // Settings panel state
+    var showSettingsPanel by remember { mutableStateOf(false) }
+    var isFullscreenMode by remember { mutableStateOf(true) }
+    var darkLevel by rememberSaveable { mutableStateOf(0) }
+    val settingsStore = remember { SettingsDataStore(context) }
+    
+    LaunchedEffect(Unit) {
+        settingsStore.darkLevelFlow.collect { persistedLevel ->
+            darkLevel = persistedLevel
+        }
+    }
+    // hapticsEnabled persisted in DataStore via ViewModel; no local state needed
+    
+    // Initialize app on first composition
+    LaunchedEffect(Unit) {
+        viewModel.initializeApp(context)
+        
+        // Perform cache scan once on app startup
+        val settingsStore = SettingsDataStore(context)
+        try {
+            val cacheSize = StorageUtils.getCacheSize(context)
+            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+            
+            // Store cache data in DataStore
+            settingsStore.setCacheSize(cacheSize)
+            settingsStore.setCacheLastScan(timestamp)
+            
+            android.widget.Toast.makeText(context, "Cache scan completed", android.widget.Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            android.widget.Toast.makeText(context, "Cache scan failed", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
     
     // Handle scroll to top
     LaunchedEffect(uiState.shouldScrollToTop) {
@@ -58,88 +530,413 @@ fun KconvertMainScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF0F172A),
-                        Color(0xFF1E293B),
-                        Color(0xFF334155)
-                    )
-                )
-            )
     ) {
+        // Animated Background
+        val isScrolling by remember { derivedStateOf { listState.isScrollInProgress } }
+        AnimatedBackground(isScrolling = isScrolling, isFullscreen = isFullscreenMode, darkLevel = darkLevel)
+        
+        // Removed duplicate backdrop overlay to reduce overdraw (AnimatedBackground already overlays a gradient)
         LazyColumn(
             state = listState,
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .then(
+                    if (isFullscreenMode) Modifier
+                    else Modifier.statusBarsPadding()
+                ),
+            contentPadding = PaddingValues(
+                top = if (isFullscreenMode) 40.dp else 20.dp, 
+                start = 16.dp, 
+                end = 16.dp, 
+                bottom = 16.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Header
-            item {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+            // Container 0 : Header with Circle Logo and Currency Converter Branding
+            item(key = "header", contentType = "header") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 20.dp)
                 ) {
-                    Text(
-                        text = "Kconvert",
-                        style = MaterialTheme.typography.h4.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    )
-                    Text(
-                        text = "Currency Converter",
-                        style = MaterialTheme.typography.subtitle1.copy(
-                            color = Color(0xFF94A3B8)
-                        )
-                    )
+                    // Semi-dark backdrop behind container 0 to match other containers
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(20.dp))
+                            .padding(8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        ) {
+                            // Outer glow
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(Color.Black.copy(alpha = 0.18f))
+                                    .blur(40.dp)
+                            )
+                            // Main card with ElegantInfoCard background
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(
+                                        brush = Brush.verticalGradient(
+                                            colors = listOf(
+                                                Color(0xFF0B1530).copy(alpha = 0.7f),
+                                                Color(0xFF0F1F3F).copy(alpha = 0.8f)
+                                            )
+                                        )
+                                    )
+                                    .border(
+                                        1.dp,
+                                        Color.White.copy(alpha = 0.06f),
+                                        RoundedCornerShape(16.dp)
+                                    )
+                                    .padding(32.dp)
+                            ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(24.dp)
+                            ) {
+                                // Circular app icon with animated stroke
+                                Box(
+                                    modifier = Modifier.size(140.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    AnimatedCircularStroke(
+                                        modifier = Modifier.size(140.dp)
+                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .size(120.dp)
+                                            .clip(CircleShape)
+                                            .background(Color.Black)
+                                            .padding(8.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        KconvertLogoImage(
+                                            contentDescription = "Kconvert Logo",
+                                            modifier = Modifier.size(104.dp)
+                                        )
+                                    }
+                                }
+
+                                // Main title with gradient
+                                val inter = FontFamily(Font(R.font.inter))
+                                val titleBrush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color(0xFF93C5FD), // blue-300
+                                        Color(0xFFC4B5FD)  // violet-300
+                                    )
+                                )
+                                Text(
+                                    text = buildAnnotatedString {
+                                        pushStyle(SpanStyle(brush = titleBrush, fontWeight = FontWeight.Bold))
+                                        append("Kconvert")
+                                        pop()
+                                    },
+                                    style = MaterialTheme.typography.h3.copy(
+                                        fontFamily = inter
+                                    ),
+                                    textAlign = TextAlign.Center
+                                )
+
+                                // Subtitle description with gradient
+                                val subtitleBrush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color(0xFF93C5FD).copy(alpha = 0.8f), // blue-300
+                                        Color(0xFFC4B5FD).copy(alpha = 0.8f)  // violet-300
+                                    )
+                                )
+                                Text(
+                                    text = "Exchange rates across the globe — discover your financial balance under the stars.",
+                                    style = MaterialTheme.typography.body1.copy(
+                                        fontFamily = inter,
+                                        textAlign = TextAlign.Center,
+                                        lineHeight = 24.sp
+                                    ),
+                                    modifier = Modifier.padding(horizontal = 8.dp)
+                                )
+
+                                // Feature highlights row
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly
+                                ) {
+                                    FeatureHighlight(
+                                        icon = Icons.Default.Calculate,
+                                        text = "Real-time Rates"
+                                    )
+                                    FeatureHighlight(
+                                        icon = Icons.Default.ShowChart,
+                                        text = "Market Insights"
+                                    )
+                                    FeatureHighlight(
+                                        icon = Icons.Default.Verified,
+                                        text = "Secure Exchange"
+                                    )
+                                }
+
+                                // Version text
+                                Text(
+                                    text = "Stellar Edition v${BuildConfig.VERSION_NAME}",
+                                    style = MaterialTheme.typography.caption.copy(
+                                        fontFamily = inter,
+                                        color = Color.White.copy(alpha = 0.6f)
+                                    )
+                                )
+                            }
+                            }
+                        }
+                    }
                 }
             }
             
-            // Container 1: Calculator Converter
-            item {
-                CalculatorConverterContainer(
-                    uiState = uiState,
-                    currencies = currencies,
-                    onAmountChange = viewModel::updateAmount,
-                    onSourceCurrencySelect = viewModel::selectSourceCurrency,
-                    onTargetCurrencySelect = viewModel::selectTargetCurrency,
-                    onConvert = viewModel::convertCurrency
-                )
+            // Container 1: Calculator Converter (Elegant card)
+            item(key = "calc_container", contentType = "calc") {
+                // Semi-dark backdrop behind container 1 to dim wallpaper
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                        .padding(8.dp)
+                ) {
+                    ElegantInfoCard(
+                        title = "Calculator Converter",
+                        titleIcon = {
+                            Icon(imageVector = Icons.Default.Calculate, contentDescription = null, tint = Color(0xFF93C5FD))
+                        }
+                    ) {
+                        CalculatorConverterContent(
+                            uiState = uiState,
+                            currencies = currencies,
+                            onAmountChange = viewModel::updateAmount,
+                            onSourceCurrencySelect = viewModel::selectSourceCurrency,
+                            onTargetCurrencySelect = viewModel::selectTargetCurrency,
+                            onConvert = {
+                                if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.convertCurrency()
+                            }
+                        )
+                    }
+                }
             }
             
-            // Container 2: Full Control Panel
-            item {
-                FullControlPanelContainer(
-                    dataIndicator = uiState.dataIndicator,
-                    autoUpdateEnabled = autoUpdateEnabled,
-                    isRefreshing = uiState.isRefreshing,
-                    onRefreshData = { viewModel.showConfirmationDialog(ConfirmationType.REFRESH_DATA) },
-                    onDeleteData = { viewModel.showConfirmationDialog(ConfirmationType.DELETE_DATA) },
-                    onToggleAutoUpdate = viewModel::toggleAutoUpdate,
-                    onRefreshApp = viewModel::refreshApp
-                )
+            // Container 2: Full Control Panel (Elegant card)
+            item(key = "control_panel", contentType = "panel") {
+                // Semi-dark backdrop behind container 2 to dim wallpaper
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                        .padding(8.dp)
+                ) {
+                    ElegantInfoCard(
+                        title = "Full Control Panel",
+                        titleIcon = {
+                            Icon(imageVector = Icons.Default.Settings, contentDescription = null, tint = Color(0xFF93C5FD))
+                        }
+                    ) {
+                        FullControlPanelContent(
+                            dataIndicator = uiState.dataIndicator,
+                            autoUpdateEnabled = autoUpdateEnabled,
+                            isRefreshing = uiState.isRefreshing,
+                            onRefreshData = {
+                                if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.showConfirmationDialog(ConfirmationType.REFRESH_DATA)
+                            },
+                            onDeleteData = {
+                                if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.showConfirmationDialog(ConfirmationType.DELETE_DATA)
+                            },
+                            onToggleAutoUpdate = {
+                                if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.toggleAutoUpdate()
+                            },
+                            onRefreshApp = {
+                                if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.refreshApp()
+                            }
+                        )
+                    }
+                }
             }
             
-            // Container 3: Chart / Gauge
-            item {
-                ChartGaugeContainer(
-                    sourceCurrency = uiState.sourceCurrency?.code,
-                    targetCurrency = uiState.targetCurrency?.code,
-                    exchangeRate = uiState.conversionResult?.exchangeRate
-                )
+            // Container 3: Currency Strength Comparison (Elegant card)
+            item(key = "gauge", contentType = "gauge") {
+                ElegantInfoCard(
+                    title = "Currency Strength Comparison",
+                    titleIcon = {
+                        Icon(imageVector = Icons.Default.ShowChart, contentDescription = null, tint = Color(0xFF93C5FD))
+                    }
+                ) {
+                    ChartGaugeContent(
+                        sourceCurrency = uiState.sourceCurrency?.code,
+                        targetCurrency = uiState.targetCurrency?.code,
+                        exchangeRate = uiState.conversionResult?.exchangeRate
+                    )
+                }
             }
-            
+
             // Container 4: What is currency converter?
-            item {
-                WhatIsCurrencyConverterContainer()
+            item(key = "what_is_currency", contentType = "info") {
+                val inter = FontFamily(Font(R.font.inter))
+                ElegantInfoCard(
+                    title = "What is currency converter?",
+                    titleIcon = { Icon(imageVector = Icons.Outlined.HelpOutline, contentDescription = null, tint = Color(0xFF93C5FD)) }
+                ) {
+                    Text(
+                        text = "A currency converter is a digital tool that calculates the equivalent value of one currency in terms of another currency. It uses real-time or near real-time exchange rates to provide accurate conversions between world currencies.",
+                        style = MaterialTheme.typography.body2.copy(color = Color(0xFFE5E7EB), fontFamily = inter)
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "Key features:",
+                        style = MaterialTheme.typography.subtitle2.copy(color = Color(0xFFBFDBFE), fontFamily = inter, fontWeight = FontWeight.SemiBold)
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("• Real-time exchange rates", style = MaterialTheme.typography.body2.copy(color = Color(0xFFE5E7EB), fontFamily = inter))
+                        Text("• Support for multiple currencies", style = MaterialTheme.typography.body2.copy(color = Color(0xFFE5E7EB), fontFamily = inter))
+                        Text("• Historical rate tracking", style = MaterialTheme.typography.body2.copy(color = Color(0xFFE5E7EB), fontFamily = inter))
+                        Text("• Offline functionality", style = MaterialTheme.typography.body2.copy(color = Color(0xFFE5E7EB), fontFamily = inter))
+                        Text("• Easy-to-use interface", style = MaterialTheme.typography.body2.copy(color = Color(0xFFE5E7EB), fontFamily = inter))
+                    }
+                }
+            }
+
+            // Container 5: About the app (bundled details)
+            item(key = "about_app", contentType = "about") {
+                val inter = FontFamily(Font(R.font.inter))
+                ElegantInfoCard(
+                    title = "About the app",
+                    titleIcon = { Icon(imageVector = Icons.Default.Settings, contentDescription = null, tint = Color(0xFF93C5FD)) }
+                ) {
+                    Text(
+                        text = "Kconvert is a modern, elegant currency converter designed for speed, clarity, and security.",
+                        style = MaterialTheme.typography.body2.copy(color = Color(0xFFE5E7EB), fontFamily = inter)
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(imageVector = Icons.Default.Archive, contentDescription = null, tint = Color(0xFF32EF12))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Version: ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.body2.copy(color = Color(0xFFE5E7EB), fontFamily = inter))
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(imageVector = Icons.Default.Build, contentDescription = null, tint = Color(0xFF32EF12))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Type: Open Source Project", style = MaterialTheme.typography.body2.copy(color = Color(0xFFE5E7EB), fontFamily = inter))
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(imageVector = Icons.Default.Verified, contentDescription = null, tint = Color(0xFF32EF12))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Status: Maintenance", style = MaterialTheme.typography.body2.copy(color = Color(0xFFE5E7EB), fontFamily = inter))
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(imageVector = Icons.Default.Description, contentDescription = null, tint = Color(0xFF32EF12))
+                            Spacer(Modifier.width(8.dp))
+                            Text("License: MIT", style = MaterialTheme.typography.body2.copy(color = Color(0xFFE5E7EB), fontFamily = inter))
+                        }
+                    }
+                }
             }
             
-            // Container 5: About
-            item {
-                AboutContainer()
+            // Container 6: Exit Button (compact glassmorphism)
+            item(key = "exit_btn", contentType = "footer") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val glassBrush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0x66FFFFFF).copy(alpha = 0.06f),
+                            Color(0x66FFFFFF).copy(alpha = 0.03f)
+                        )
+                    )
+                    val exitInteraction = remember { MutableInteractionSource() }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(glassBrush)
+                            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(24.dp))
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                            .then(bouncyPress(exitInteraction))
+                            .clickable(
+                                interactionSource = exitInteraction,
+                                indication = rememberRipple(bounded = true, radius = 28.dp)
+                            ) {
+                                if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.showConfirmationDialog(ConfirmationType.EXIT_APP)
+                            }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ExitToApp,
+                            contentDescription = "Exit App",
+                            tint = Color(0xFFDC2626),
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "Exit App",
+                            style = MaterialTheme.typography.body2.copy(
+                                color = Color(0xFFE5E7EB),
+                                fontWeight = FontWeight.Medium
+                            )
+                        )
+                    }
+                }
             }
         }
         
+        // Global Top-Right Settings button (overlay, notch-safe) with subtle spacing and slow spin
+        // Remove background/shadow to avoid visual conflict with Container 0 and keep it lightweight
+        val gearSpin by rememberInfiniteTransition(label = "gear_spin").animateFloat(
+            initialValue = 0f,
+            targetValue = 360f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 24000, easing = LinearEasing), // slow, smooth spin
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "gear_spin_angle"
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                // Always respect status bar insets to avoid overlapping phone indicators
+                .statusBarsPadding()
+                // Extra spacing from the corner for better reach and separation from indicators
+                .padding(top = 32.dp, end = 32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            val gearInteraction = remember { MutableInteractionSource() }
+            IconButton(
+                onClick = {
+                    if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    showSettingsPanel = true
+                },
+                modifier = Modifier
+                    .size(44.dp)
+                    .then(bouncyPress(gearInteraction)),
+                interactionSource = gearInteraction
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Settings",
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .modifierRotate(gearSpin)
+                )
+            }
+        }
+
         // Floating notifications and dialogs
         Column(
             modifier = Modifier.align(Alignment.TopCenter)
@@ -156,8 +953,8 @@ fun KconvertMainScreen(
             isVisible = uiState.confirmationDialog.isVisible,
             title = uiState.confirmationDialog.title,
             type = uiState.confirmationDialog.type,
-            onConfirm = { viewModel.onConfirmationResult(true) },
-            onDismiss = { viewModel.onConfirmationResult(false) }
+            onConfirm = { viewModel.onConfirmationResult(true, context) },
+            onDismiss = { viewModel.onConfirmationResult(false, context) }
         )
         
         // Error handling
@@ -168,15 +965,222 @@ fun KconvertMainScreen(
                 viewModel.clearError()
             }
         }
+        
+        // Settings Panel
+        BottomSheetSettingsPanel(
+            isVisible = showSettingsPanel,
+            onDismiss = { showSettingsPanel = false },
+            hapticsEnabled = hapticsEnabled,
+            onToggleHaptics = { enabled -> viewModel.setHapticsEnabled(enabled) },
+            isFullscreenMode = isFullscreenMode,
+            onToggleFullscreen = { enabled -> isFullscreenMode = enabled },
+            darkLevel = darkLevel,
+            onDarkLevelChange = { level -> darkLevel = level }
+        )
     }
 }
 
 /**
- * Container 1: Calculator Converter
+ * Animated circular stroke component with gradient and glow effect
  */
 @Composable
-private fun CalculatorConverterContainer(
-    uiState: com.oxyzenq.currencyconverter.presentation.viewmodel.KconvertUiState,
+fun AnimatedCircularStroke(
+    modifier: Modifier = Modifier,
+    strokeWidth: Dp = 4.dp,
+    sweepAngle: Float = 60f
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "circular_stroke")
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 3000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "stroke_rotation"
+    )
+
+    Canvas(modifier = modifier) {
+        val center = Offset(size.width / 2f, size.height / 2f)
+        val radius = (size.minDimension / 2f) - strokeWidth.toPx() / 2f
+        val strokeWidthPx = strokeWidth.toPx()
+
+        // Main blue plasma stroke brushes (no glow)
+        val mainBrush = Brush.sweepGradient(
+            0f to Color(0xFF42A5F5), // Blue
+            0.4f to Color(0xFF26C6DA), // Cyan
+            0.8f to Color(0xFFE0F7FA), // Very light cyan
+            1f to Color(0xFFFFFFFF),   // White tip
+            center = center
+        )
+        val secondBrush = Brush.sweepGradient(
+            0f to Color(0xFF80DEEA), // Light cyan
+            0.5f to Color(0xFFB3E5FC), // Pale blue
+            1f to Color.White.copy(alpha = 0.6f),
+            center = center
+        )
+
+        // Draw first snake by rotating canvas so gradient stays aligned to head (no glow)
+        drawRotate(degrees = rotation) {
+            // Main stroke
+            drawArc(
+                brush = mainBrush,
+                startAngle = 0f,
+                sweepAngle = sweepAngle,
+                useCenter = false,
+                topLeft = Offset(center.x - radius, center.y - radius),
+                size = Size(radius * 2f, radius * 2f),
+                style = Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
+            )
+        }
+
+        // Second lighter snake with phase offset and thinner stroke
+        val offsetRotation = (rotation + 160f) % 360f
+        drawRotate(degrees = offsetRotation) {
+            drawArc(
+                brush = secondBrush,
+                startAngle = 0f,
+                sweepAngle = sweepAngle,
+                useCenter = false,
+                topLeft = Offset(center.x - radius, center.y - radius),
+                size = Size(radius * 2f, radius * 2f),
+                style = Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
+            )
+        }
+    }
+}
+
+/**
+ * Particle data classes for animation
+ */
+data class ShootingStar(
+    var x: Float,
+    var y: Float,
+    var speed: Float,
+    var alpha: Float,
+    var size: Float
+)
+
+data class Bubble(
+    var x: Float,
+    var y: Float,
+    var speed: Float,
+    var alpha: Float,
+    var size: Float
+)
+
+
+/**
+ * Animated Logo Component with pulse, shimmer, and sway effects
+ */
+@Composable
+fun AnimatedLogo(
+    painter: Painter,
+    modifier: Modifier = Modifier,
+    size: Dp = 80.dp,
+    contentDescription: String? = null
+) {
+    // Infinite transition for looped pulse only (throbbing)
+    val infiniteTransition = rememberInfiniteTransition(label = "logo_pulse")
+
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1.0f,
+        targetValue = 1.08f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 1800,
+                easing = FastOutSlowInEasing
+            ),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse_scale"
+    )
+
+    Box(
+        modifier = modifier
+            .size(size)
+            .scale(pulseScale),
+        contentAlignment = Alignment.Center
+    ) {
+        // Base logo with solid black circular background
+        Image(
+            painter = painter,
+            contentDescription = contentDescription,
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(CircleShape)
+                .background(Color.Black)
+                .padding(8.dp),
+            contentScale = ContentScale.Fit
+        )
+    }
+}
+
+/**
+ * Elegant Button Component matching the sleek design
+ */
+@Composable
+private fun ElegantButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: (@Composable () -> Unit)? = null,
+    backgroundColor: Color = Color(0xFF1E293B),
+    contentColor: Color = Color.White,
+    enabled: Boolean = true,
+    isLoading: Boolean = false
+) {
+    val interaction = remember { MutableInteractionSource() }
+    Button(
+        onClick = onClick,
+        modifier = modifier.then(bouncyPress(interaction)),
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = backgroundColor.copy(alpha = if (enabled) 0.9f else 0.5f),
+            contentColor = contentColor
+        ),
+        shape = RoundedCornerShape(12.dp),
+        enabled = enabled,
+        elevation = ButtonDefaults.elevation(
+            defaultElevation = 0.dp,
+            pressedElevation = 0.dp,
+            disabledElevation = 0.dp
+        ),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        interactionSource = interaction
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    color = contentColor,
+                    strokeWidth = 2.dp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            } else if (icon != null) {
+                icon()
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.button.copy(
+                    fontWeight = FontWeight.Medium
+                ),
+                color = contentColor
+            )
+        }
+    }
+}
+
+/**
+ * Container 1: Calculator Converter Content (no outer card)
+ */
+@Composable
+private fun CalculatorConverterContent(
+    uiState: com.oxyzenq.kconvert.presentation.viewmodel.KconvertUiState,
     currencies: List<Currency>,
     onAmountChange: (String) -> Unit,
     onSourceCurrencySelect: (Currency) -> Unit,
@@ -186,30 +1190,19 @@ private fun CalculatorConverterContainer(
     var showSourceCurrencyPicker by remember { mutableStateOf(false) }
     var showTargetCurrencyPicker by remember { mutableStateOf(false) }
     
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        backgroundColor = Color(0xFF1E293B),
-        elevation = 4.dp,
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
-            Text(
-                text = "Calculator Converter",
-                style = MaterialTheme.typography.h6.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
+    Column {
             
             // Amount input
+            // Display empty when underlying value is "0" so placeholder shows
+            val displayAmount = if (uiState.amount == "0") "" else uiState.amount
             OutlinedTextField(
-                value = uiState.amount,
-                onValueChange = onAmountChange,
+                value = displayAmount,
+                onValueChange = { newValue ->
+                    // If user clears, propagate empty; ViewModel can treat empty as zero lazily
+                    onAmountChange(newValue)
+                },
                 label = { Text("Amount", color = Color(0xFF94A3B8)) },
+                placeholder = { Text("fill here e.g 1", color = Color(0xFF64748B)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.fillMaxWidth(),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -245,29 +1238,21 @@ private fun CalculatorConverterContainer(
             Spacer(modifier = Modifier.height(16.dp))
             
             // Convert button
-            Button(
+            ElegantButton(
+                text = "Convert",
                 onClick = onConvert,
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color(0xFF7C3AED)
-                ),
-                shape = RoundedCornerShape(12.dp),
-                enabled = !uiState.isConverting
-            ) {
-                if (uiState.isConverting) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        color = Color.White,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text = "Calculate Conversion",
-                        color = Color.White,
-                        fontWeight = FontWeight.Medium
+                backgroundColor = Color(0xFF059669),
+                isLoading = uiState.isConverting,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Calculate,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = Color.White
                     )
                 }
-            }
+            )
             
             // Conversion result
             uiState.conversionResult?.let { result ->
@@ -298,37 +1283,36 @@ private fun CalculatorConverterContainer(
                 }
             }
         }
-    }
-    
-    // Currency picker dialogs
-    if (showSourceCurrencyPicker) {
-        CurrencyPickerDialog(
-            currencies = currencies,
-            onCurrencySelected = { currency ->
-                onSourceCurrencySelect(currency)
-                showSourceCurrencyPicker = false
-            },
-            onDismiss = { showSourceCurrencyPicker = false }
-        )
-    }
-    
-    if (showTargetCurrencyPicker) {
-        CurrencyPickerDialog(
-            currencies = currencies,
-            onCurrencySelected = { currency ->
-                onTargetCurrencySelect(currency)
-                showTargetCurrencyPicker = false
-            },
-            onDismiss = { showTargetCurrencyPicker = false }
-        )
-    }
+        
+        // Currency picker dialogs
+        if (showSourceCurrencyPicker) {
+            CurrencyPickerDialog(
+                currencies = currencies,
+                onCurrencySelected = { currency ->
+                    onSourceCurrencySelect(currency)
+                    showSourceCurrencyPicker = false
+                },
+                onDismiss = { showSourceCurrencyPicker = false }
+            )
+        }
+        
+        if (showTargetCurrencyPicker) {
+            CurrencyPickerDialog(
+                currencies = currencies,
+                onCurrencySelected = { currency ->
+                    onTargetCurrencySelect(currency)
+                    showTargetCurrencyPicker = false
+                },
+                onDismiss = { showTargetCurrencyPicker = false }
+            )
+        }
 }
 
 /**
- * Container 2: Full Control Panel
+ * Container 2: Full Control Panel Content (no outer card)  
  */
 @Composable
-private fun FullControlPanelContainer(
+private fun FullControlPanelContent(
     dataIndicator: String,
     autoUpdateEnabled: Boolean,
     isRefreshing: Boolean,
@@ -337,148 +1321,132 @@ private fun FullControlPanelContainer(
     onToggleAutoUpdate: () -> Unit,
     onRefreshApp: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        backgroundColor = Color(0xFF1E293B),
-        elevation = 4.dp,
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
+    Column {
+        // Indicator text
+        Text(
+            text = if (autoUpdateEnabled) "auto update is on" else "auto update is off",
+            style = MaterialTheme.typography.caption.copy(
+                color = Color(0xFF94A3B8),
+                fontWeight = FontWeight.Medium
+            )
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Data status
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            backgroundColor = Color(0xFF374151),
+            shape = RoundedCornerShape(8.dp)
         ) {
             Text(
-                text = "Full Control Panel",
-                style = MaterialTheme.typography.h6.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // Indicator text
-            Text(
-                text = if (autoUpdateEnabled) "auto update is on" else "auto update is off",
+                text = dataIndicator,
+                modifier = Modifier.padding(12.dp),
                 style = MaterialTheme.typography.caption.copy(
-                    color = Color(0xFF94A3B8),
-                    fontWeight = FontWeight.Medium
+                    color = Color(0xFF94A3B8)
                 )
             )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Data status
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                backgroundColor = Color(0xFF374151),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    text = dataIndicator,
-                    modifier = Modifier.padding(12.dp),
-                    style = MaterialTheme.typography.caption.copy(
-                        color = Color(0xFF94A3B8)
-                    )
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Refresh data button
+        ElegantButton(
+            text = "Refresh Data of Price",
+            onClick = onRefreshData,
+            modifier = Modifier.fillMaxWidth(),
+            backgroundColor = Color(0xFF059669),
+            enabled = !isRefreshing,
+            isLoading = isRefreshing,
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = Color.White
                 )
             }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Control buttons
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = onRefreshData,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color(0xFF059669)
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    enabled = !isRefreshing
-                ) {
-                    if (isRefreshing) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            color = Color.White,
-                            strokeWidth = 2.dp
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                    }
-                    Text(
-                        text = if (isRefreshing) "Refreshing..." else "refresh data of price",
-                        color = Color.White
-                    )
-                }
-                
-                Button(
-                    onClick = onDeleteData,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color(0xFFDC2626)
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = "delete old data of price",
-                        color = Color.White
-                    )
-                }
-                
-                Button(
-                    onClick = onToggleAutoUpdate,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = if (autoUpdateEnabled) Color(0xFFF59E0B) else Color(0xFF6B7280)
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = "auto update on launch (${if (autoUpdateEnabled) "on" else "off"})",
-                        color = Color.White
-                    )
-                }
-                
-                Button(
-                    onClick = onRefreshApp,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color(0xFF7C3AED)
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = "refresh app",
-                        color = Color.White
-                    )
-                }
+        )
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        // Delete data button
+        ElegantButton(
+            text = "Clear All Data",
+            onClick = onDeleteData,
+            modifier = Modifier.fillMaxWidth(),
+            backgroundColor = Color(0xFFDC2626),
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = Color.White
+                )
             }
-        }
+        )
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        // Auto update toggle
+        ElegantButton(
+            text = "Auto Update on Launch (Off)",
+            onClick = onToggleAutoUpdate,
+            modifier = Modifier.fillMaxWidth(),
+            backgroundColor = Color(0xFF6B7280),
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = Color.White
+                )
+            }
+        )
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        // Refresh app button
+        ElegantButton(
+            text = "Refresh App",
+            onClick = onRefreshApp,
+            modifier = Modifier.fillMaxWidth(),
+            backgroundColor = Color(0xFF7C3AED),
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = Color.White
+                )
+            }
+        )
     }
 }
 
 /**
- * Container 3: Chart / Gauge
+ * Container 3: Currency Strength Gauge Content (no outer card)
  */
 @Composable
-private fun ChartGaugeContainer(
+private fun ChartGaugeContent(
     sourceCurrency: String?,
     targetCurrency: String?,
     exchangeRate: Double?
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        backgroundColor = Color(0xFF1E293B),
-        elevation = 4.dp,
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
-            CurrencyStrengthGauge(
-                fromCurrency = sourceCurrency,
-                toCurrency = targetCurrency,
-                exchangeRate = exchangeRate
+    Column {
+        CurrencyStrengthGauge(
+            fromCurrency = sourceCurrency,
+            toCurrency = targetCurrency,
+            exchangeRate = exchangeRate
+        )
+        Spacer(Modifier.height(8.dp))
+        // Helper tip only when data is missing (avoid duplicate with gauge placeholder text)
+        if (sourceCurrency == null || targetCurrency == null || exchangeRate == null) {
+            Text(
+                text = "Select currencies to compare",
+                style = MaterialTheme.typography.caption.copy(color = Color(0xFF93C5FD)),
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
         }
     }
@@ -492,7 +1460,7 @@ private fun WhatIsCurrencyConverterContainer() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         backgroundColor = Color(0xFF1E293B),
-        elevation = 4.dp,
+        elevation = 0.dp,
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
@@ -534,7 +1502,7 @@ private fun AboutContainer() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         backgroundColor = Color(0xFF1E293B),
-        elevation = 4.dp,
+        elevation = 0.dp,
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
@@ -552,7 +1520,7 @@ private fun AboutContainer() {
             Spacer(modifier = Modifier.height(12.dp))
             
             Text(
-                text = "Kconvert — version com.oxyzenq.currencyconverter",
+                text = "Kconvert — version com.oxyzenq.kconvert",
                 style = MaterialTheme.typography.body2.copy(
                     color = Color(0xFF94A3B8),
                     fontWeight = FontWeight.Medium

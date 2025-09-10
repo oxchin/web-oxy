@@ -1,13 +1,17 @@
-package com.oxyzenq.currencyconverter
+/*
+ * Creativity Authored by oxyzenq 2025
+ */
+
+package com.oxyzenq.kconvert
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
-class CurrencyConverterApplication : Application() {
+class KconvertApplication : Application() {
     
     companion object {
-        lateinit var instance: CurrencyConverterApplication
+        lateinit var instance: KconvertApplication
             private set
     }
     

@@ -1,4 +1,8 @@
-package com.oxyzenq.currencyconverter.data.model
+/*
+ * Creativity Authored by oxyzenq 2025
+ */
+
+package com.oxyzenq.kconvert.data.model
 
 import com.google.gson.annotations.SerializedName
 

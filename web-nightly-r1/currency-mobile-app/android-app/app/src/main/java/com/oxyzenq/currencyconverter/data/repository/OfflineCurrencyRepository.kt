@@ -1,8 +1,12 @@
-package com.oxyzenq.currencyconverter.data.repository
+/*
+ * Creativity Authored by oxyzenq 2025
+ */
 
-import com.oxyzenq.currencyconverter.data.local.OfflineCurrencyService
-import com.oxyzenq.currencyconverter.data.model.ConversionResponse
-import com.oxyzenq.currencyconverter.data.model.Currency
+package com.oxyzenq.kconvert.data.repository
+
+import com.oxyzenq.kconvert.data.local.OfflineCurrencyService
+import com.oxyzenq.kconvert.data.model.ConversionResponse
+import com.oxyzenq.kconvert.data.model.Currency
 import javax.inject.Inject
 import javax.inject.Singleton
 
