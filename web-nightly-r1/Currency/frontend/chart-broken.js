@@ -15,9 +15,7 @@ import {
     CategoryScale,
     Tooltip,
     Filler,
-    Legend,
-    BarController,
-    BarElement
+    Legend
 } from 'chart.js';
 
 // Register only what we need for a lighter bundle
@@ -29,9 +27,7 @@ Chart.register(
     CategoryScale,
     Tooltip,
     Filler,
-    Legend,
-    BarController,
-    BarElement
+    Legend
 );
 
 // Golden vertical crosshair plugin for elegant precision reading
@@ -255,140 +251,163 @@ class ExchangeRateChart {
                     }
                 }
             },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    enabled: false, // hidden by default when no data
-                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                    titleColor: '#f1f5f9',
-                    bodyColor: '#cbd5e1',
-                    borderColor: '#f1c40f',
-                    borderWidth: 1,
-                    cornerRadius: 12,
-                    displayColors: false,
-                    padding: 12,
-                    titleFont: {
-                        family: 'Inter',
-                        size: 13,
-                        weight: '600'
+                plugins: {
+                    legend: {
+                        display: false
                     },
-                    bodyFont: {
-                        family: 'Inter',
-                        size: 12,
-                        weight: '500'
-                    },
-                    callbacks: {
-                        title: function(context) {
-                            return `Time: ${context[0].label}`;
+                    tooltip: {
+                        enabled: false, // hidden by default when no data
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#cbd5e1',
+                        borderColor: '#f1c40f',
+                        borderWidth: 1,
+                        cornerRadius: 12,
+                        displayColors: false,
+                        padding: 12,
+                        titleFont: {
+                            family: 'Inter',
+                            size: 13,
+                            weight: '600'
                         },
-                        label: function(context) {
-                            const value = context.parsed.y;
-                            // Format with proper number formatting
-                            const formatted = new Intl.NumberFormat('en-US', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 6,
-                                useGrouping: true
-                            }).format(value);
-                            return `Rate: ${formatted}`;
-                        }
-                    }
-                },
-                crosshairLine: {
-                    color: '#f1c40f',
-                    lineWidth: 1.5,
-                    dash: [6, 4]
-                }
-            },
-            layout: {
-                padding: {
-                    top: 10,
-                    right: 5,
-                    bottom: 10,
-                    left: 5
-                }
-            },
-            elements: {
-                line: {
-                    borderCapStyle: 'round',
-                    borderJoinStyle: 'round'
-                },
-                point: {
-                    pointStyle: 'circle',
-                    radius: 4,
-                    hitRadius: 6,
-                    hoverRadius: 6
-                }
-            },
-            scales: {
-                x: {
-                    display: true,
-                    title: {
-                        // hidden by default when no data
-                        display: false,
-                        text: 'Time',
-                        color: '#94a3b8',
-                        font: {
+                        bodyFont: {
                             family: 'Inter',
                             size: 12,
                             weight: '500'
+                        },
+                        callbacks: {
+                            title: function(context) {
+                                return `Time: ${context[0].label}`;
+                            },
+                            label: function(context) {
+                                const value = context.parsed.y;
+                                // Format with proper number formatting
+                                const formatted = new Intl.NumberFormat('en-US', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 6,
+                                    useGrouping: true
+                                }).format(value);
+                                return `Rate: ${formatted}`;
+                            }
                         }
                     },
-                    grid: {
-                        color: 'rgba(148, 163, 184, 0.08)',
-                        drawBorder: false,
-                        // hidden by default when no data
-                        display: false
-                    },
-                    ticks: {
-                        font: {
-                            family: 'Inter',
-                            size: 11
-                        },
-                        // hidden by default when no data
-                        display: false
+                    crosshairLine: {
+                        color: '#f1c40f',
+                        lineWidth: 1.5,
+                        dash: [6, 4]
                     }
                 },
-                y: {
-                    display: true,
-                    title: {
-                        // hidden by default when no data
-                        display: false,
-                        text: this.currentPair.to ? `Value (${this.currentPair.to})` : 'Value',
-                        color: '#94a3b8',
-                        font: {
-                            family: 'Inter',
-                            size: 12,
-                            weight: '500'
-                        }
+                layout: {
+                    padding: {
+                        top: 10,
+                        right: 5,
+                        bottom: 10,
+                        left: 5
+                    }
+                },
+                elements: {
+                    line: {
+                        borderCapStyle: 'round',
+                        borderJoinStyle: 'round'
                     },
-                    grid: {
-                        color: 'rgba(148, 163, 184, 0.08)',
-                        drawBorder: false,
-                        // hidden by default when no data
-                        display: false
-                    },
-                    ticks: {
-                        color: '#94a3b8',
-                        font: {
-                            family: 'Inter',
-                            size: 11
+                    point: {
+                        pointStyle: 'circle',
+                        radius: 4,
+                        hitRadius: 6,
+                        hoverRadius: 6
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            // hidden by default when no data
+                            display: false,
+                            text: 'Time',
+                            color: '#94a3b8',
+                            font: {
+                                family: 'Inter',
+                                size: 12,
+                                weight: '500'
+                            }
                         },
-                        // hidden by default when no data
-                        display: false,
-                        callback: function(value) {
-                            // Format Y-axis with proper number formatting
-                            return new Intl.NumberFormat('en-US', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 3,
-                                useGrouping: true
-                            }).format(value);
+                        grid: {
+                            color: 'rgba(148, 163, 184, 0.08)',
+                            drawBorder: false,
+                            // hidden by default when no data
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Inter',
+                                size: 11
+                            },
+                            // hidden by default when no data
+                            display: false
                         }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            // hidden by default when no data
+                            display: false,
+                            text: this.currentPair.to ? `Value (${this.currentPair.to})` : 'Value',
+                            color: '#94a3b8',
+                            font: {
+                                family: 'Inter',
+                                size: 12,
+                                weight: '500'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(148, 163, 184, 0.08)',
+                            drawBorder: false,
+                            // hidden by default when no data
+                            display: false
+                        },
+                        ticks: {
+                            color: '#94a3b8',
+                            font: {
+                                family: 'Inter',
+                                size: 11
+                            },
+                            // hidden by default when no data
+                            display: false,
+                            callback: function(value) {
+                                // Format Y-axis with proper number formatting
+                                return new Intl.NumberFormat('en-US', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 3,
+                                    useGrouping: true
+                                }).format(value);
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 700,
+                    easing: 'easeOutCubic'
+                },
+                // Per-property animations for a gentle spring-like effect
+                animations: {
+                    y: {
+                        duration: 800,
+                        easing: 'easeOutBack'
+                    },
+                    x: {
+                        duration: 600,
+                        easing: 'easeOutCubic'
+                    }
+                },
+                // Slight emphasis when dataset becomes active (hover/tooltip)
+                transitions: {
+                    active: {
+                        animation: { duration: 200 },
+                        borderWidth: 4
                     }
                 }
             }
-        };
+        });
     }
     
     setupEventListeners() {
@@ -459,11 +478,7 @@ class ExchangeRateChart {
         
         // Update chart data with animation
         this.chart.data.labels = data.labels;
-        if (this.chartType === 'bar') {
-            this.chart.data.datasets[0].data = data.changeData;
-        } else {
-            this.chart.data.datasets[0].data = data.data;
-        }
+        this.chart.data.datasets[0].data = data.data;
         this.chart.data.datasets[0].label = `${this.currentPair.from} to ${this.currentPair.to}`;
         
         // Update titles and toggle axes visibility depending on data
@@ -471,6 +486,8 @@ class ExchangeRateChart {
         
         // Axis titles
         this.chart.options.scales.y.title.text = `Value (${this.currentPair.to})`;
+        this.chart.options.scales.x.title.display = hasData;
+        this.chart.options.scales.y.title.display = hasData;
         
         // Grid and ticks visibility
         this.chart.options.scales.x.grid.display = hasData;
@@ -525,71 +542,77 @@ class ExchangeRateChart {
         this.updateChart();
     }
     
-    generateHistoricalData(baseRate, range) {
+    // Generate realistic historical data based on current rate
+    generateHistoricalData(currentRate, timeRange) {
         const dataPoints = {
-            '12H': 24,
-            '1D': 24,
-            '1W': 7,
-            '1M': 30,
-            '1Y': 12,
-            '2Y': 24,
-            '5Y': 60,
-            '10Y': 120
-        };
-        
-        const count = dataPoints[range] || 24;
-        const labels = [];
-        const data = [];
-        
-        // Generate labels based on range
-        const labelGenerators = {
-            '12H': (i) => `${23-i}:00`,
-            '1D': (i) => `${23-i}:00`,
-            '1W': (i) => {
+            '12H': { count: 12, interval: 'hour', label: (i) => `${23-i}:00` },
+            '1D': { count: 24, interval: 'hour', label: (i) => `${23-i}:00` },
+            '1W': { count: 7, interval: 'day', label: (i) => {
                 const date = new Date();
                 date.setDate(date.getDate() - (6-i));
                 return date.toLocaleDateString('en-US', { weekday: 'short' });
-            },
-            '1M': (i) => {
+            }},
+            '1M': { count: 30, interval: 'day', label: (i) => {
                 const date = new Date();
                 date.setDate(date.getDate() - (29-i));
                 return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            },
-            '1Y': (i) => {
+            }},
+            '1Y': { count: 12, interval: 'month', label: (i) => {
                 const date = new Date();
                 date.setMonth(date.getMonth() - (11-i));
                 return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-            },
-            '2Y': (i) => {
+            }},
+            '2Y': { count: 24, interval: 'month', label: (i) => {
                 const date = new Date();
                 date.setMonth(date.getMonth() - (23-i));
                 return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-            },
-            '5Y': (i) => {
+            }},
+            '5Y': { count: 60, interval: 'month', label: (i) => {
                 const date = new Date();
                 date.setMonth(date.getMonth() - (59-i));
                 return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-            },
-            '10Y': (i) => {
+            }},
+            '10Y': { count: 120, interval: 'month', label: (i) => {
                 const date = new Date();
                 date.setMonth(date.getMonth() - (119-i));
                 return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-            }
+            }}
         };
         
-        const labelGen = labelGenerators[range] || labelGenerators['12H'];
+        const config = dataPoints[timeRange];
+        if (!config) return { labels: [], data: [] };
         
-        // Generate synthetic historical data with realistic fluctuations
-        for (let i = 0; i < count; i++) {
-            labels.push(labelGen(i));
+        const labels = [];
+        const data = [];
+        
+        // Generate realistic fluctuations around current rate
+        const volatility = {
+            '12H': 0.002, // 0.2% volatility
+            '1D': 0.005,  // 0.5% volatility
+            '1W': 0.015,  // 1.5% volatility
+            '1M': 0.03,   // 3% volatility
+            '1Y': 0.08,   // 8% volatility
+            '2Y': 0.12,   // 12% volatility
+            '5Y': 0.20,   // 20% volatility
+            '10Y': 0.35   // 35% volatility
+        }[timeRange];
+        
+        let previousRate = currentRate * (0.98 + Math.random() * 0.04); // Start within ±2%
+        
+        for (let i = 0; i < config.count; i++) {
+            labels.push(config.label(i));
             
-            // Create realistic price movement: start lower, trend toward current rate
-            const progress = i / (count - 1);
-            const trendFactor = 0.85 + (progress * 0.15); // Start at 85%, end at 100%
-            const randomFactor = 0.95 + (Math.random() * 0.1); // ±5% random variation
-            const syntheticRate = baseRate * trendFactor * randomFactor;
+            // Generate realistic price movement
+            const change = (Math.random() - 0.5) * volatility * 2;
+            const trend = (currentRate - previousRate) * 0.1; // Slight trend toward current rate
+            previousRate = previousRate * (1 + change + trend);
             
-            data.push(syntheticRate);
+            // Ensure we end close to current rate for recent data
+            if (i === config.count - 1) {
+                previousRate = currentRate;
+            }
+            
+            data.push(previousRate);
         }
         
         return { labels, data };
@@ -628,16 +651,6 @@ class ExchangeRateChart {
         }
     }
     
-    // Clear all chart data
-    clearChartData() {
-        Object.keys(this.chartData).forEach(range => {
-            this.chartData[range].labels = [];
-            this.chartData[range].data = [];
-            this.chartData[range].changeData = [];
-        });
-        this.updateChart();
-    }
-    
     // Lightweight real-time simulation for demo/debug
     startRealTimeSimulation() {
         if (this.simulationInterval) return; // already running
@@ -652,12 +665,10 @@ class ExchangeRateChart {
                 const label = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 dataset.labels.push(label);
                 dataset.data.push(next);
-                dataset.changeData = this.calculateChangeData(dataset.data);
                 // Keep recent window reasonable
                 const maxPoints = 60;
                 if (dataset.labels.length > maxPoints) dataset.labels.shift();
                 if (dataset.data.length > maxPoints) dataset.data.shift();
-                if (dataset.changeData.length > maxPoints) dataset.changeData.shift();
                 this.updateChart();
             } catch (e) {
                 // Fail-safe: stop simulation if anything goes wrong
@@ -666,12 +677,21 @@ class ExchangeRateChart {
         };
         this.simulationInterval = setInterval(tick, 3000);
     }
-    
+
     stopRealTimeSimulation() {
         if (this.simulationInterval) {
             clearInterval(this.simulationInterval);
             this.simulationInterval = null;
         }
+    }
+
+    // Clear all chart data
+    clearChartData() {
+        Object.keys(this.chartData).forEach(range => {
+            this.chartData[range].labels = [];
+            this.chartData[range].data = [];
+        });
+        this.updateChart();
     }
     
     destroy() {

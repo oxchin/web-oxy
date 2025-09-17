@@ -4,7 +4,13 @@
   "private": true,
   "type": "module",
   "description": "Kconvert - Ultra-optimized currency converter frontend with Vite LTS",
-  "keywords": ["currency", "converter", "vite", "lts", "stable"],
+  "keywords": [
+    "currency",
+    "converter",
+    "vite",
+    "lts",
+    "stable"
+  ],
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 3000 --mode development",
     "build": "vite build --mode production",
@@ -28,20 +34,23 @@
     "perf:analyze": "npm run build:analyze && echo '⚡ Performance analysis complete'"
   },
   "devDependencies": {
+    "@rollup/plugin-replace": "5.0.7",
+    "rollup-plugin-copy": "3.5.0",
     "rollup-plugin-visualizer": "5.12.0",
     "terser": "5.34.1",
     "vite": "5.4.8",
-    "vite-plugin-pwa": "0.20.5",
-    "@rollup/plugin-replace": "5.0.7",
-    "rollup-plugin-copy": "3.5.0"
+    "vite-plugin-pwa": "0.20.5"
   },
   "dependencies": {
     "@fontsource/inter": "5.1.0",
     "@fortawesome/fontawesome-free": "6.6.0",
-    "chart.js": "4.4.4"
+    "chart.js": "4.4.4",
+    "chartjs-adapter-date-fns": "^3.0.0",
+    "chartjs-chart-financial": "^0.2.1",
+    "chartjs-plugin-zoom": "^2.2.0"
   },
   "engines": {
-    "node": "20.x",
+    "node": ">=18 <25",
     "npm": ">=9.0.0"
   },
   "browserslist": [

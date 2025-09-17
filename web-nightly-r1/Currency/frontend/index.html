@@ -11,7 +11,7 @@
 </head>
 
 <body>
-    <div class="container">
+    <div class="container container--1">
         <!-- Animated Logo Header -->
         <div class="brand">
             <div class="brand-ring ring-outer"></div>
@@ -22,60 +22,115 @@
             </div>
         </div>
         <h2 class="app-title">Kconvert App</h2>
-        <p class="app-subtitle">A app for currency converter</p>
-        <div class="A">
-            <p>Amount</p>
+        <p class="app-subtitle">Simple professional currency converter with real-time rates</p>
+        
+        <!-- Feature Icons Section -->
+        <div class="features-section">
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-calculator"></i>
+                </div>
+                <span class="feature-text">Real-time Rates</span>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <span class="feature-text">Market Insights</span>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-palette"></i>
+                </div>
+                <span class="feature-text">Modern Design</span>
+            </div>
         </div>
-        <form id="converter-form">
-            <div class="amount">
-                <input type="text" id="amount-input" class="form1"
-                aria-label="Amount to convert" placeholder="Enter amount" autocomplete="off">
+        
+        <div class="version-badge">Stellar Edition 1.5</div>
+        
+        <!-- Fire Arrow Scroll Indicator -->
+        <div class="fire-scroll-indicator">
+            <div class="fire-arrow">
+                <div class="fire-ball"></div>
+                <i class="fas fa-chevron-down arrow-icon"></i>
             </div>
-
-            <div class="convert-box">
-                <div class="from">
-                    <p>From</p>
-                    <div class="search-input-container" data-type="from">
-                        <img id="from-flag" src="https://flagcdn.com/48x36/us.png" alt="From currency flag" class="flag-indicator">
-                        <input type="text" class="currency-search from-search form2" 
-                               placeholder="USD - United States Dollar" 
-                               aria-label="Search from currency"
-                               data-currency="USD"
-                               data-full-name="USD - United States Dollar"
-                               autocomplete="off"
-                               readonly>
-                        <div class="search-suggestions from-suggestions" style="display: none;"></div>
-                    </div>
-                </div>
-                <div class="reverse" aria-label="Swap currencies">
-                    <i class="fas fa-exchange-alt"></i>
-                </div>
-                <div class="to">
-                    <p>To</p>
-                    <div class="search-input-container" data-type="to">
-                        <img id="to-flag" src="https://flagcdn.com/48x36/sg.png" alt="To currency flag" class="flag-indicator">
-                        <input type="text" class="currency-search to-search form3" 
-                               placeholder="SGD - Singapore Dollar" 
-                               aria-label="Search to currency"
-                               data-currency="SGD"
-                               data-full-name="SGD - Singapore Dollar"
-                               autocomplete="off"
-                               readonly>
-                        <div class="search-suggestions to-suggestions" style="display: none;"></div>
-                    </div>
-                </div>
-                <div class="result" aria-live="polite">Ready to convert</div>
-                <!-- Inline help icon (opens floating modal with instructions) -->
-                <span id="help-icon" class="info-help-icon" aria-label="Show usage help" tabindex="0">?</span>
-                <button type="submit" id="convert-button"><i class="fas fa-arrow-right"></i><span>Convert</span></button>
-                <button type="reset" id="reset-button"><i class="fas fa-rotate-left"></i><span>Reset</span></button> <!-- Keep inside container -->
-            </div>
-        </form>
+        </div>
     </div>
 
-    <!-- Second Container: Chart Graphics -->
-    <div class="container chart-container">
+    <!-- Second Container: Calc engine-->
+    <div class="container container--2">
+        <h2 class="section-title">Currency Converter</h2>
+      <div class="A">
+          <p>Amount</p>
+      </div>
+      <form id="converter-form">
+          <div class="amount">
+              <input type="text" id="amount-input" class="form1"
+              aria-label="Amount to convert" placeholder="Enter amount" autocomplete="off">
+          </div>
+
+          <div class="convert-box">
+              <div class="from">
+                  <p>From</p>
+                  <div class="search-input-container" data-type="from">
+                      <img id="from-flag" src="https://flagcdn.com/48x36/us.png" alt="From currency flag" class="flag-indicator">
+                      <input type="text" class="currency-search from-search form2" 
+                             placeholder="USD - United States Dollar" 
+                             aria-label="Search from currency"
+                             data-currency="USD"
+                             data-full-name="USD - United States Dollar"
+                             autocomplete="off"
+                             readonly>
+                      <div class="search-suggestions from-suggestions" style="display: none;"></div>
+                  </div>
+              </div>
+              <div class="reverse" aria-label="Swap currencies">
+                  <i class="fas fa-exchange-alt"></i>
+              </div>
+              <div class="to">
+                  <p>To</p>
+                  <div class="search-input-container" data-type="to">
+                      <img id="to-flag" src="https://flagcdn.com/48x36/sg.png" alt="To currency flag" class="flag-indicator">
+                      <input type="text" class="currency-search to-search form3" 
+                             placeholder="SGD - Singapore Dollar" 
+                             aria-label="Search to currency"
+                             data-currency="SGD"
+                             data-full-name="SGD - Singapore Dollar"
+                             autocomplete="off"
+                             readonly>
+                      <div class="search-suggestions to-suggestions" style="display: none;"></div>
+                  </div>
+              </div>
+              <div class="result" aria-live="polite">Ready to convert</div>
+              <!-- Inline help icon (opens floating modal with instructions) -->
+              <span id="help-icon" class="info-help-icon" aria-label="Show usage help" tabindex="0">?</span>
+              <button type="submit" id="convert-button"><i class="fas fa-arrow-right"></i><span>Convert</span></button>
+              <button type="reset" id="reset-button"><i class="fas fa-rotate-left"></i><span>Reset</span></button> <!-- Keep inside container -->
+          </div>
+      </form>
+  </div>
+
+    <!-- Third Container: Chart Graphics -->
+    <div class="container chart-container container--3">
         <h2 class="section-title">Exchange Rate Chart</h2>
+        
+        <!-- Chart Type Controls -->
+        <div class="chart-type-controls">
+            <button class="chart-type-btn active" data-type="area">
+                <i class="fas fa-chart-area"></i>
+                <span>Area</span>
+            </button>
+            <button class="chart-type-btn" data-type="line">
+                <i class="fas fa-chart-line"></i>
+                <span>Line</span>
+            </button>
+            <button class="chart-type-btn" data-type="bar">
+                <i class="fas fa-chart-bar"></i>
+                <span>Change %</span>
+            </button>
+        </div>
+        
+        <!-- Time Range Controls -->
         <div class="chart-controls">
             <button class="time-range-btn active" data-range="12H">12H</button>
             <button class="time-range-btn" data-range="1D">1D</button>
@@ -90,25 +145,30 @@
             <canvas id="exchangeRateChart"></canvas>
         </div>
         <div class="chart-info">
-            <div class="chart-currency-pair">
-                <span class="chart-from">--</span>
-                <i class="fas fa-arrow-right"></i>
-                <span class="chart-to">--</span>
+            <div class="live-indicator">
+                <div class="live-dot"></div>
+                <span class="live-text">LIVE</span>
             </div>
-            <div class="chart-current-rate">0.000000</div>
+            <div class="chart-currency-pair">
+                <span class="chart-from">USD</span>
+                <i class="fas fa-arrow-right"></i>
+                <span class="chart-to">EUR</span>
+            </div>
+          
+            <div class="chart-current-rate">0.8542</div>
         </div>
     </div>
 
-    <!-- Third Container: What is converter? -->
-    <div class="container info-container">
+    <!-- Four Container: What is converter? -->
+    <div class="container info-container container--4">
         <h2 class="section-title">What is converter?</h2>
         <div class="section-content">
             <p>A currency converter is an essential financial tool that allows users to calculate the equivalent value of one currency in terms of another currency. This powerful utility uses real-time exchange rates from global financial markets to provide accurate conversions between different international currencies. Whether you're planning international travel, conducting business across borders, making online purchases from foreign retailers, or simply staying informed about global economic trends, a currency converter serves as your gateway to understanding monetary values worldwide. Modern currency converters leverage advanced APIs and financial data sources to ensure precision and reliability, making complex foreign exchange calculations accessible to everyone from casual travelers to professional traders and international business professionals.</p>
         </div>
     </div>
 
-    <!-- Four Container: About Kconvert App -->
-    <div class="container about-container">
+    <!-- Five Container: About Kconvert App -->
+    <div class="container about-container container--5">
         <h2 class="section-title">About the Kconvert app</h2>
         <div class="section-content">
             <p>Is an app for converter, not like traditional other, this project apps to make simple but modern look that function, this project leader by Team 6. with license MIT you can use, modify, and distribute this software freely. The project emphasizes clean design principles, user-friendly interfaces, and reliable functionality while maintaining open-source accessibility for developers worldwide.</p>
