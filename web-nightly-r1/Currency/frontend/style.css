@@ -164,7 +164,7 @@ body {
     position: relative;
 }
 
-/* Optimized Glassmorphism Background - GPU Efficient */
+/* Optimized Glassmorphism Background - GPU Efficient next */
 body::before {
     content: "";
     position: fixed;
