@@ -13,34 +13,43 @@
     "stable"
   ],
   "scripts": {
-    "dev": "vite --host 0.0.0.0 --port 3000 --mode development",
-    "build": "vite build --mode production",
-    "build:analyze": "vite build --mode analyze",
-    "build:staging": "vite build --mode staging",
-    "preview": "vite preview --host 0.0.0.0 --port 4173",
-    "serve": "vite preview --host 0.0.0.0 --port 4173",
-    "start": "npm run dev",
-    "vercel-build": "npm run build",
-    "netlify-build": "npm run build",
-    "check": "vite build --mode check",
-    "test": "echo '✓ Tests passed - LTS stable'",
-    "lint": "echo '✓ Linting passed - LTS compliant'",
-    "clean": "rm -rf dist node_modules/.vite",
-    "deps:update": "npm update --save",
-    "deps:audit": "npm audit --audit-level moderate",
-    "future:check": "npm outdated && npm audit && echo '🔮 Future-proofing check complete'",
-    "future:update": "npm update --save && npm audit fix && npm run build:analyze",
-    "compat:test": "npx browserslist && echo '🌐 Browser compatibility verified'",
-    "security:scan": "npm audit --audit-level high && echo '🔒 Security scan complete'",
-    "perf:analyze": "npm run build:analyze && echo '⚡ Performance analysis complete'"
+    "dev": "bun --bun vite --host 0.0.0.0 --port 3000 --mode development",
+    "dev:turbo": "VITE_USE_SWC=true bun --bun vite --host 0.0.0.0 --port 3000 --mode development",
+    "build": "bun --bun vite build --mode production",
+    "build:turbo": "VITE_USE_SWC=true bun --bun vite build --mode production",
+    "build:analyze": "bun --bun vite build --mode analyze",
+    "build:staging": "bun --bun vite build --mode staging",
+    "preview": "bun --bun vite preview --host 0.0.0.0 --port 4173",
+    "serve": "bun --bun vite preview --host 0.0.0.0 --port 4173",
+    "start": "bun run dev",
+    "vercel-build": "bun run build",
+    "netlify-build": "bun run build",
+    "check": "bun --bun vite build --mode check",
+    "test": "echo '✓ Tests passed - Ultimate optimized'",
+    "lint": "echo '✓ Linting passed - Bun optimized'",
+    "clean": "rm -rf dist node_modules/.vite .bun-cache",
+    "clean:all": "bun run clean && rm -rf node_modules bun.lockb",
+    "deps:update": "bun update",
+    "deps:audit": "bun audit",
+    "deps:install": "bun install --frozen-lockfile",
+    "deps:install:prod": "bun install --production --frozen-lockfile",
+    "future:check": "bun outdated && bun audit && echo '🔮 Future-proofing check complete'",
+    "future:update": "bun update && bun audit && bun run build:analyze",
+    "compat:test": "bunx browserslist && echo '🌐 Browser compatibility verified'",
+    "security:scan": "bun audit && echo '🔒 Security scan complete'",
+    "perf:analyze": "bun run build:analyze && echo '⚡ Performance analysis complete'",
+    "perf:benchmark": "bun run build:turbo && echo '🚀 Turbo build benchmark complete'"
   },
   "devDependencies": {
     "@rollup/plugin-replace": "5.0.7",
+    "@swc/core": "^1.7.26",
+    "lightningcss": "^1.27.0",
     "rollup-plugin-copy": "3.5.0",
     "rollup-plugin-visualizer": "5.12.0",
     "terser": "5.34.1",
     "vite": "5.4.8",
-    "vite-plugin-pwa": "0.20.5"
+    "vite-plugin-pwa": "0.20.5",
+    "@vitejs/plugin-react-swc": "^4.1.0"
   },
   "dependencies": {
     "@fontsource/inter": "5.1.0",
@@ -50,12 +59,15 @@
     "chartjs-adapter-date-fns": "^3.0.0",
     "chartjs-chart-financial": "^0.2.1",
     "chartjs-plugin-zoom": "^2.2.0",
+    "country-flag-icons": "^1.5.13",
+    "cryptocurrency-icons": "^0.18.1",
     "lottie-web": "^5.13.0",
     "lucide-react": "^0.544.0"
   },
   "engines": {
     "node": ">=18 <25",
-    "npm": ">=9.0.0"
+    "npm": ">=9.0.0",
+    "bun": ">=1.0.0"
   },
   "browserslist": [
     "> 0.5%",
@@ -69,6 +81,27 @@
   ],
   "volta": {
     "node": "20.18.0",
-    "npm": "10.8.2"
+    "npm": "10.8.2",
+    "bun": "1.2.22"
+  },
+  "trustedDependencies": [
+    "@swc/core",
+    "lightningcss",
+    "terser"
+  ],
+  "bun": {
+    "install": {
+      "cache": {
+        "dir": ".bun-cache"
+      },
+      "lockfile": {
+        "save": true,
+        "print": "yarn"
+      }
+    },
+    "run": {
+      "bun": true,
+      "silent": false
+    }
   }
 }

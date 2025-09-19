@@ -1,0 +1,64 @@
+# Kconvert - Bun.js Configuration File
+# Ultimate performance optimization for development and production
+# Copyright (c) 2025 Team 6
+
+[install]
+# Registry configuration
+registry = "https://registry.npmjs.org/"
+optional = true
+peer = true
+production = false
+frozenLockfile = false
+
+# Cache configuration
+[install.cache]
+dir = ".bun-cache"
+disable = false
+
+# Lockfile configuration  
+[install.lockfile]
+save = true
+print = "yarn"
+
+[run]
+# Use Bun's native runtime for maximum performance
+bun = true
+hot = true
+silent = false
+
+# Development optimizations
+[dev]
+hot = true
+cors = true
+
+# Build optimizations
+[build]
+target = "browser"
+format = "esm"
+minify = true
+sourcemap = "external"
+splitting = true
+
+# Test configuration
+[test]
+timeout = 30000
+coverage = false
+
+# Performance optimizations
+[performance]
+# Enable all performance features
+jsc = true
+swc = true
+esbuild = true
+
+# Memory optimizations
+[memory]
+# Use optimized memory allocation
+smol = false
+heap = "auto"
+
+# Experimental features
+[experimental]
+macros = true
+jsx = true
+css = true

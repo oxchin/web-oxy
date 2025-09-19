@@ -22,10 +22,10 @@
   /* ⚡ Enhanced Color Variables for Professional Typography */
   --bg-color: #0a0a0a;
   --container-bg: rgba(255, 255, 255, 0.05);
-  --text-color: #f8fafc; /* Enhanced primary text contrast */
-  --text-secondary: #e2e8f0; /* Secondary text with good contrast */
-  --text-muted: #cbd5e1; /* Muted text for less important content */
-  --subtext-color: #94a3b8; /* Improved subtext readability */
+  --text-color: #ffffff; /* Maximum contrast white for primary text */
+  --text-secondary: #f1f5f9; /* High contrast secondary text */
+  --text-muted: #e2e8f0; /* Improved muted text readability */
+  --subtext-color: #cbd5e1; /* Enhanced subtext contrast */
   --text-disabled: #64748b; /* Disabled state text */
   --border-color: rgba(255, 255, 255, 0.1);
   --button-bg: rgba(255, 255, 255, 0.1);
@@ -49,11 +49,11 @@
   --nebula-glow: #7f7fd5; /* Ethereal Nebula Glow */
 
   /* Text Colors - Enhanced for Professional Readability */
-  --text-color: #f0f2f8; /* Enhanced Soft White for better contrast */
-  --subtext-color: #d0d3e6; /* Enhanced Light Bluish White */
-  --label-color: #e8eaf2; /* Professional label color */
-  --value-color: #f4f6fb; /* High contrast for values */
-  --muted-text: #b8bcc8; /* Subtle muted text */
+  --text-color: #ffffff; /* Maximum contrast white for primary text */
+  --subtext-color: #f1f5f9; /* Enhanced Light Bluish White */
+  --label-color: #f8fafc; /* High contrast label color */
+  --value-color: #ffffff; /* Maximum contrast for values */
+  --muted-text: #e2e8f0; /* Improved muted text visibility */
 
   /* Borders & Shadows */
   --container-border: rgba(66, 133, 244, 0.5); /* Subtle Plasma Blue */
@@ -73,18 +73,19 @@
 #to-flag,
 .flag-indicator,
 .suggestion-flag {
-  border-radius: 50%;
-  aspect-ratio: 1 / 1;
+  border-radius: 8px; /* Changed from 50% to rounded rectangle */
+  aspect-ratio: 4 / 3; /* Changed from 1/1 to rectangular ratio */
   object-fit: cover;
   background: #0b0f1c; /* fallback background while loading */
   border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3); /* Added subtle shadow for depth */
 }
 
 /* Ensure the small suggestion flags don’t overflow their row height */
-.suggestion-flag { width: 20px; height: 20px; }
+.suggestion-flag { width: 24px; height: 18px; } /* Updated for 4:3 ratio */
 
 /* Ensure the main picker flags maintain a consistent size */
-#from-flag, #to-flag, .flag-indicator { width: 36px; height: 36px; }
+#from-flag, #to-flag, .flag-indicator { width: 36px; height: 27px; } /* Updated for 4:3 ratio */
 
 /* Icon-enhanced buttons: align icons on the left with consistent spacing */
 #convert-button,
@@ -112,7 +113,7 @@
     font-weight: 400;
     line-height: 1.7;
     letter-spacing: 0.01em;
-    color: var(--text-secondary);
+    color: var(--text-color); /* Enhanced readability */
 }
 
 /* Economics Learning Container Styling */
@@ -133,7 +134,7 @@
     font-weight: 400;
     line-height: 1.7;
     letter-spacing: 0.01em;
-    color: var(--text-secondary);
+    color: var(--text-color); /* Enhanced readability */
     max-width: 800px;
     margin-left: auto;
     margin-right: auto;
@@ -194,7 +195,7 @@
 }
 
 .economics-desc {
-    color: var(--subtext-color);
+    color: var(--text-secondary); /* Improved contrast */
     font-size: 0.9rem;
     line-height: 1.6;
     margin: 0 0 16px 0;
@@ -294,7 +295,7 @@
 }
 
 .warning-message {
-    color: var(--text-secondary);
+    color: var(--text-color); /* Enhanced readability */
     font-size: 0.95rem;
     line-height: 1.7;
     margin: 0;
@@ -599,7 +600,7 @@ body::after {
     background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
     border: 1px solid rgba(66,133,244,0.2);
     border-radius: 16px;
-    color: var(--text-secondary);
+    color: var(--text-color); /* Enhanced readability */
     font-family: 'Inter', sans-serif;
     font-size: 0.875rem;
     font-weight: 500;
@@ -841,7 +842,7 @@ body::after {
     font-weight: 400; /* Inter Regular for body text */
     font-variation-settings: 'wght' 400;
     line-height: 1.65; /* Optimized line height for readability */
-    color: var(--text-color);
+    color: var(--text-color); /* Maximum contrast white */
     margin: 0 0 18px 0; /* Improved paragraph spacing */
     letter-spacing: -0.005em; /* Subtle Inter spacing */
     text-rendering: optimizeLegibility; /* Enhanced text rendering */
@@ -898,7 +899,7 @@ body::after {
 }
 
 .info-item .info-label {
-    color: var(--text-muted);
+    color: var(--text-secondary); /* Improved contrast */
     font-weight: 600;
     white-space: nowrap;
 }
@@ -921,7 +922,7 @@ body::after {
     font-size: 0.9rem;
     font-weight: 600; /* Inter Semi-bold for labels */
     font-variation-settings: 'wght' 600;
-    color: var(--text-secondary); /* Enhanced contrast for labels */
+    color: var(--text-color); /* Maximum contrast for labels */
     margin-bottom: 8px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -1208,18 +1209,18 @@ body::after {
 }
 
 .app-subtitle {
-    font-size: 1.125rem; /* Enhanced size for better readability */
-    font-weight: 400; /* Inter Regular for body text */
+    font-size: 1.125rem; /* Enhanced size for better hierarchy */
+    font-weight: 400; /* Inter Regular for subtitles */
     font-variation-settings: 'wght' 400;
     text-align: center;
     margin: 0 0 24px 0; /* Improved spacing */
-    color: var(--subtext-color);
+    color: var(--text-secondary); /* Improved contrast */
     letter-spacing: -0.01em; /* Subtle Inter spacing */
     line-height: 1.5; /* Professional line height */
-    opacity: 0.9; /* Subtle hierarchy */
+    opacity: 0.95; /* Enhanced visibility */
+    transform: translateZ(0); /* Isolate from animation effects */
 }
 
-/* Brand animated logo header */
 .brand {
     position: relative;
     width: 138px;
@@ -1466,7 +1467,7 @@ body::after {
 
 .flag-indicator {
     width: 24px;
-    height: auto;
+    height: 18px; /* Updated for 4:3 ratio consistency */
     margin-right: 10px;
     flex-shrink: 0;
 }
@@ -1656,8 +1657,8 @@ body::after {
 }
 
 .suggestion-flag {
-    width: 20px;
-    height: auto;
+    width: 24px;
+    height: 18px; /* Updated for 4:3 ratio consistency */
     margin-right: 10px;
     flex-shrink: 0;
 }
@@ -1677,7 +1678,7 @@ body::after {
 }
 
 .suggestion-name {
-    color: var(--subtext-color);
+    color: var(--text-secondary); /* Improved contrast */
     font-size: 0.85rem;
     margin-top: 2px;
 }
@@ -1917,7 +1918,7 @@ footer p {
     font-weight: 600;
 }
 .modal-text p { 
-    color: var(--text-secondary); 
+    color: var(--text-color); /* Enhanced readability */
     margin: 0;
     line-height: 1.5;
 }

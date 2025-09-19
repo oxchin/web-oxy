@@ -72,7 +72,7 @@
               <div class="from">
                   <p>From</p>
                   <div class="search-input-container" data-type="from">
-                      <img id="from-flag" src="https://flagcdn.com/48x36/us.png" alt="From currency flag" class="flag-indicator">
+                      <img id="from-flag" src="/node_modules/country-flag-icons/3x2/US.svg" alt="US Dollar flag" class="flag-indicator">
                       <input type="text" class="currency-search from-search form2" 
                              placeholder="USD - United States Dollar" 
                              aria-label="Search from currency"
@@ -89,7 +89,7 @@
               <div class="to">
                   <p>To</p>
                   <div class="search-input-container" data-type="to">
-                      <img id="to-flag" src="https://flagcdn.com/48x36/sg.png" alt="To currency flag" class="flag-indicator">
+                      <img id="to-flag" src="/node_modules/country-flag-icons/3x2/SG.svg" alt="Singapore Dollar flag" class="flag-indicator">
                       <input type="text" class="currency-search to-search form3" 
                              placeholder="SGD - Singapore Dollar" 
                              aria-label="Search to currency"
@@ -475,7 +475,7 @@
       function renderCurrencyList(currencies) {
         modalCurrencyList.innerHTML = currencies.map((currency, index) => `
           <div class="suggestion-item" data-currency="${currency.code}" data-name="${currency.name}" data-flag="${currency.flag}" style="animation-delay: ${index * 0.02}s">
-            <img class="suggestion-flag" src="https://flagcdn.com/20x15/${currency.flag}.png" alt="${currency.name} flag" onerror="this.src='https://flagcdn.com/20x15/un.png'">
+            <img class="suggestion-flag" src="/node_modules/country-flag-icons/3x2/${currency.flag.toUpperCase()}.svg" alt="${currency.name} flag" onerror="this.src='/node_modules/country-flag-icons/3x2/UN.svg'">
             <div class="suggestion-text">
               <div class="suggestion-code">${currency.code}</div>
               <div class="suggestion-name">${currency.name}</div>
@@ -509,7 +509,7 @@
           // Update flag
           const flagImg = currentSearchInput.parentElement.querySelector('.flag-indicator');
           if (flagImg) {
-            flagImg.src = `https://flagcdn.com/48x36/${flag}.png`;
+            flagImg.src = `/node_modules/country-flag-icons/3x2/${flag.toUpperCase()}.svg`;
             flagImg.alt = `${name} flag`;
           }
           

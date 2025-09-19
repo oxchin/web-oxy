@@ -464,6 +464,10 @@ async function ensureJwtLoaded() {
     return token;
 }
 
+// Import flag and crypto utilities
+import { updateFlagImage, createFlagImage, preloadFlags, MAJOR_CURRENCY_FLAGS, updateCurrencyIconSmart } from './utils/flags.js';
+import { isCryptocurrency, preloadCryptoIcons, MAJOR_CRYPTOCURRENCIES, createCurrencyIcon } from './utils/crypto-icons.js';
+
 // DOM elements
 let fromSearch, toSearch, amount, exRateTxt, exchangeIcon, fromSuggestions, toSuggestions;
 let currentFromCurrency = 'USD';
@@ -597,13 +601,9 @@ function displaySuggestions(suggestions, container, isFromInput) {
         item.dataset.index = index;
         item.dataset.currency = currency.code;
         
-        const flag = document.createElement('img');
-        flag.className = 'suggestion-flag';
-        flag.src = `https://flagcdn.com/48x36/${currency.country}.png`;
-        flag.alt = `${currency.name} flag`;
-        flag.onerror = () => {
-            flag.src = 'https://flagcdn.com/48x36/un.png';
-        };
+        const flag = isCryptocurrency(currency.code) 
+            ? createCurrencyIcon(currency.code, null, 'suggestion-flag')
+            : createFlagImage(currency.country, `${currency.name} flag`, 'suggestion-flag');
         
         const text = document.createElement('div');
         text.className = 'suggestion-text';
@@ -630,14 +630,14 @@ function selectCurrency(currency, isFromInput) {
         window.currentFromCurrency = currency.code; // Sync with global
         fromSearch.value = `${currency.code} - ${currency.name}`;
         fromSearch.dataset.currency = currency.code;
-        updateFlagImage(document.getElementById('from-flag'), currency.country);
+        updateCurrencyIconSmart(document.getElementById('from-flag'), currency.code, currency.country, `${currency.name} flag`);
         fromSuggestions.style.display = 'none';
     } else {
         currentToCurrency = currency.code;
         window.currentToCurrency = currency.code; // Sync with global
         toSearch.value = `${currency.code} - ${currency.name}`;
         toSearch.dataset.currency = currency.code;
-        updateFlagImage(document.getElementById('to-flag'), currency.country);
+        updateCurrencyIconSmart(document.getElementById('to-flag'), currency.code, currency.country, `${currency.name} flag`);
         toSuggestions.style.display = 'none';
     }
     
@@ -653,12 +653,10 @@ function selectCurrency(currency, isFromInput) {
     getExchangeRate();
 }
 
-// Update flag image
-function updateFlagImage(imgElement, countryCode) {
-    imgElement.src = `https://flagcdn.com/48x36/${countryCode}.png`;
-    imgElement.onerror = () => {
-        imgElement.src = 'https://flagcdn.com/48x36/un.png';
-    };
+// Legacy function - now uses utils/flags.js
+// Kept for backward compatibility
+function updateFlagImageLegacy(imgElement, countryCode) {
+    updateFlagImage(imgElement, countryCode);
 }
 
 // Handle keyboard navigation
@@ -711,8 +709,12 @@ function initializeSearchInputs() {
     toSearch.dataset.currency = 'SGD';
     
     // Update initial flags
-    updateFlagImage(document.getElementById('from-flag'), 'us');
-    updateFlagImage(document.getElementById('to-flag'), 'sg');
+    updateFlagImage(document.getElementById('from-flag'), 'US', 'US Dollar flag');
+    updateFlagImage(document.getElementById('to-flag'), 'SG', 'Singapore Dollar flag');
+    
+    // Preload major currency flags and crypto icons for better performance
+    preloadFlags(MAJOR_CURRENCY_FLAGS);
+    preloadCryptoIcons(MAJOR_CRYPTOCURRENCIES);
     
     // From search input events
     fromSearch.addEventListener('input', (e) => {
@@ -764,10 +766,7 @@ function updateFlag(select) {
     const code = select.value;
     const imgTag = select.parentElement.querySelector("img");
     const countryCode = getCountryFromCurrency(code);
-    imgTag.src = `https://flagcdn.com/48x36/${countryCode}.png`;
-    imgTag.onerror = () => {
-        imgTag.src = `https://flagcdn.com/48x36/un.png`;
-    };
+    updateCurrencyIconSmart(imgTag, code, countryCode);
 }
 
 // ===== EXCHANGE RATE FUNCTIONS =====
@@ -1233,8 +1232,8 @@ function resetForm() {
         currentToCurrency = 'SGD';
         amount.value = '';
         
-        updateFlagImage(document.getElementById('from-flag'), 'us');
-        updateFlagImage(document.getElementById('to-flag'), 'sg');
+        updateFlagImage(document.getElementById('from-flag'), 'US', 'US Dollar flag');
+        updateFlagImage(document.getElementById('to-flag'), 'SG', 'Singapore Dollar flag');
         
         if (exRateTxt) {
             exRateTxt.innerText = "Ready to convert";

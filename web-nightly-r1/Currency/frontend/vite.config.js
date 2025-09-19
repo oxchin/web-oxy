@@ -8,6 +8,8 @@
 import { defineConfig, loadEnv } from 'vite'
 import { visualizer } from 'rollup-plugin-visualizer'
 import replace from '@rollup/plugin-replace'
+import { resolve } from 'path'
+import swc from '@vitejs/plugin-react-swc'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
@@ -22,12 +24,20 @@ export default defineConfig(({ command, mode }) => {
     // Server configuration for development
     server: {
       port: 3000,
-      strictPort: true,
+      strictPort: false, // Allow fallback ports
       host: '0.0.0.0',
       open: false,
       cors: true,
       hmr: {
-        overlay: true
+        overlay: true,
+        port: 24678 // Dedicated HMR port
+      },
+      fs: {
+        strict: false // Allow serving files outside root
+      },
+      // Warm up frequently used files
+      warmup: {
+        clientFiles: ['./main.js', './style.css', './utils/*.js']
       }
     },
     
@@ -41,6 +51,43 @@ export default defineConfig(({ command, mode }) => {
     
     // Plugin configuration
     plugins: [
+      // SWC plugin for turbo mode
+      ...(process.env.VITE_USE_SWC === 'true' ? [
+        swc({
+          // SWC options for maximum performance
+          swcOptions: {
+            jsc: {
+              target: 'es2022',
+              parser: {
+                syntax: 'ecmascript',
+                jsx: false,
+                dynamicImport: true,
+                privateMethod: true,
+                functionBind: false,
+                exportDefaultFrom: true,
+                exportNamespaceFrom: true,
+                decorators: false,
+                decoratorsBeforeExport: true,
+                topLevelAwait: true,
+                importMeta: true
+              },
+              transform: {
+                react: {
+                  runtime: 'automatic',
+                  development: !isProduction,
+                  refresh: !isProduction
+                }
+              },
+              minify: {
+                compress: isProduction,
+                mangle: isProduction
+              }
+            },
+            minify: isProduction
+          }
+        })
+      ] : []),
+      
       // Environment variable replacement
       replace({
         __MODE__: JSON.stringify(mode),
@@ -59,26 +106,40 @@ export default defineConfig(({ command, mode }) => {
       ] : [])
     ],
     
-    // Build configuration optimized for LTS
+    // Build configuration optimized for ultimate performance
     build: {
       outDir: 'dist',
       assetsDir: 'assets',
-      sourcemap: !isProduction,
-      minify: isProduction ? 'terser' : false,
+      sourcemap: isProduction ? 'hidden' : true, // Hidden sourcemaps for production
+      minify: isProduction ? 'terser' : false, // Use esbuild for dev builds
       
-      // Terser options for production optimization
+      // Enable experimental features for better performance
+      reportCompressedSize: false, // Faster builds
+      cssMinify: isProduction ? 'lightningcss' : false,
+      
+      // Advanced Terser options for ultimate optimization
       terserOptions: isProduction ? {
         compress: {
           drop_console: true,
           drop_debugger: true,
-          pure_funcs: ['console.log', 'console.info', 'console.debug'],
-          passes: 2
+          pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
+          passes: 3, // More aggressive optimization
+          unsafe_arrows: true,
+          unsafe_methods: true,
+          unsafe_proto: true,
+          keep_fargs: false,
+          toplevel: true
         },
         mangle: {
-          safari10: true
+          safari10: true,
+          toplevel: true,
+          properties: {
+            regex: /^_/
+          }
         },
         format: {
-          safari10: true
+          safari10: true,
+          comments: false
         }
       } : {},
       
@@ -86,37 +147,66 @@ export default defineConfig(({ command, mode }) => {
       rollupOptions: {
         input: 'index.html',
         output: {
-          // Let Rollup decide chunking; dynamic imports will create separate chunks
+          // Optimized chunking strategy
           chunkFileNames: isProduction 
-            ? 'assets/js/[name]-[hash].js'
+            ? 'assets/js/[name]-[hash:8].js'
             : 'assets/js/[name].js',
           entryFileNames: isProduction
-            ? 'assets/js/[name]-[hash].js' 
+            ? 'assets/js/[name]-[hash:8].js' 
             : 'assets/js/[name].js',
           assetFileNames: isProduction
-            ? 'assets/[ext]/[name]-[hash].[ext]'
-            : 'assets/[ext]/[name].[ext]'
+            ? 'assets/[ext]/[name]-[hash:8].[ext]'
+            : 'assets/[ext]/[name].[ext]',
+          
+          // Manual chunk splitting for better caching
+          manualChunks: isProduction ? {
+            vendor: ['chart.js', '@fontsource/inter', '@fortawesome/fontawesome-free'],
+            utils: ['./utils/crypto-icons.js', './utils/flags.js', './utils/time.js']
+          } : undefined,
+          
+          // Compact output
+          compact: isProduction,
+          
+          // Optimize imports
+          hoistTransitiveImports: false
         }
       },
       
-      // Modern target; no legacy plugin
-      target: 'es2020',
+      // Ultra-modern target for better optimization
+      target: 'es2022',
       
-      // Chunk size warnings
-      chunkSizeWarningLimit: 1000,
+      // Optimized chunk size warnings
+      chunkSizeWarningLimit: 800,
       
-      // CSS code splitting
-      cssCodeSplit: true,
+      // Smart CSS code splitting
+      cssCodeSplit: isProduction,
       
-      // Asset inlining threshold
-      assetsInlineLimit: 4096
+      // Optimized asset inlining
+      assetsInlineLimit: 8192, // Inline more small assets
+      
+      // Enable module preload polyfill
+      modulePreload: {
+        polyfill: true
+      },
+      
+      // Experimental: Use SWC for faster builds (if available)
+      ...(process.env.VITE_USE_SWC === 'true' && {
+        minify: 'swc'
+      })
     },
     
-    // ESBuild configuration
+    // Enhanced ESBuild configuration
     esbuild: {
-      target: 'es2020',
+      target: 'es2022',
       drop: isProduction ? ['console', 'debugger'] : [],
-      legalComments: 'none'
+      legalComments: 'none',
+      treeShaking: true,
+      minifyIdentifiers: isProduction,
+      minifySyntax: isProduction,
+      minifyWhitespace: isProduction,
+      // Use native ESBuild for faster builds
+      platform: 'browser',
+      format: 'esm'
     },
     
     // CSS configuration
@@ -129,13 +219,25 @@ export default defineConfig(({ command, mode }) => {
       }
     },
     
-    // Dependency optimization
+    // Advanced dependency optimization
     optimizeDeps: {
       include: [
-        '@fontsource/inter',
-        '@fortawesome/fontawesome-free'
+        '@fortawesome/fontawesome-free',
+        'country-flag-icons'
       ],
-      exclude: ['chart.js']
+      exclude: [
+        'chart.js', // Keep as dynamic import for code splitting
+        'lottie-web'
+      ],
+      // Force optimization of specific deps
+      force: isProduction,
+      // ESBuild options for deps
+      esbuildOptions: {
+        target: 'es2022',
+        supported: {
+          'top-level-await': true
+        }
+      }
     },
     
     // Define global constants
@@ -144,10 +246,31 @@ export default defineConfig(({ command, mode }) => {
       __BUILD_MODE__: JSON.stringify(mode)
     },
     
-    // Resolve configuration
+    // Enhanced resolve configuration
     resolve: {
       alias: {
-        '@': new URL('./', import.meta.url).pathname
+        '@': resolve(__dirname, './'),
+        '@utils': resolve(__dirname, './utils'),
+        '@assets': resolve(__dirname, './assets')
+      },
+      // Optimize extension resolution
+      extensions: ['.js', '.mjs', '.json', '.css']
+    },
+    
+    // Worker configuration for better performance
+    worker: {
+      format: 'es',
+      plugins: () => []
+    },
+    
+    // Experimental features for ultimate performance
+    experimental: {
+      renderBuiltUrl(filename, { hostType }) {
+        if (hostType === 'js') {
+          return { js: `'${filename}'` }
+        } else {
+          return { relative: true }
+        }
       }
     }
   }
