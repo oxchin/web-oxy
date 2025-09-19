@@ -208,4 +208,4 @@ curl "http://localhost:8000/api/rates/USD?token=YOUR_TOKEN"
 
 ## 📄 License
 
-This project is part of the Currency Converter web application.
+This project is licensed under the GPL-3.0 License.

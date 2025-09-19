@@ -17,15 +17,26 @@ const isProduction = import.meta?.env?.MODE === 'production' ||
                     location.hostname.includes('netlify.app') ||
                     location.hostname.includes('github.io');
 
-// API Configuration
+// API Configuration (env-driven with safe fallbacks)
+const ENV = import.meta?.env || {};
+const inferredDefaultBase = (location.protocol === 'https:')
+    ? 'https://kconvert-backend.zeabur.app'
+    : 'http://localhost:8000';
+const resolvedBaseRaw = ENV.VITE_API_BASE_URL || ENV.API_BASE_URL || inferredDefaultBase;
+const resolvedBase = String(resolvedBaseRaw || '').replace(/\/$/, ''); // ensure no trailing slash
+
 const API_CONFIG = {
-    BASE_URL: 'https://kconvert-backend.zeabur.app',
-    REQUEST_TIMEOUT: parseInt(import.meta?.env?.VITE_REQUEST_TIMEOUT) || 10000,
-    RETRY_ATTEMPTS: parseInt(import.meta?.env?.VITE_RETRY_ATTEMPTS) || 3,
-    CACHE_DURATION: parseInt(import.meta?.env?.VITE_CACHE_DURATION) || 300000
+    BASE_URL: resolvedBase,
+    REQUEST_TIMEOUT: parseInt(ENV.REQUEST_TIMEOUT || ENV.VITE_REQUEST_TIMEOUT) || 10000,
+    RETRY_ATTEMPTS: parseInt(ENV.RETRY_ATTEMPTS || ENV.VITE_RETRY_ATTEMPTS) || 3,
+    CACHE_DURATION: parseInt(ENV.CACHE_DURATION || ENV.VITE_CACHE_DURATION) || 300000
 };
 
 // CSP Configuration
+const API_ORIGIN = (() => {
+    try { return new URL(API_CONFIG.BASE_URL).origin; } catch { return API_CONFIG.BASE_URL; }
+})();
+
 const CSP_CONFIG = {
     production: {
         defaultSrc: "'self'",
@@ -34,7 +45,7 @@ const CSP_CONFIG = {
         imgSrc: "'self' data: https://flagcdn.com",
         scriptSrc: "'self' 'unsafe-inline'",
         scriptSrcElem: "'self' 'unsafe-inline'",
-        connectSrc: `'self' https://kconvert-backend.zeabur.app https:`,
+        connectSrc: `'self' ${API_ORIGIN} https:`,
         objectSrc: "'none'",
         baseUri: "'self'"
     },
@@ -44,7 +55,7 @@ const CSP_CONFIG = {
         styleSrc: "'self' 'unsafe-inline'",
         imgSrc: "'self' data: https://flagcdn.com",
         scriptSrc: "'self' 'unsafe-inline' 'unsafe-eval'",
-        connectSrc: "'self' http://localhost:8000 ws://localhost:*"
+        connectSrc: `'self' ${API_ORIGIN} ws://localhost:*`
     }
 };
 

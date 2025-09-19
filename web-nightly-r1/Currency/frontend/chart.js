@@ -76,6 +76,23 @@ const crosshairLinePlugin = {
 
 Chart.register(crosshairLinePlugin);
 
+// UTC Time Utilities
+function getUTCDate() {
+    const now = new Date();
+    return new Date(now.getTime() + (now.getTimezoneOffset() * 60000));
+}
+
+function formatUTCTime(options = {}) {
+    const utcDate = getUTCDate();
+    const defaultOptions = {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: 'UTC'
+    };
+    return utcDate.toLocaleTimeString('en-US', { ...defaultOptions, ...options });
+}
+
 // Chart configuration and data management
 class ExchangeRateChart {
     constructor(canvasId) {
@@ -287,7 +304,7 @@ class ExchangeRateChart {
                             const value = context.parsed.y;
                             // Format with proper number formatting
                             const formatted = new Intl.NumberFormat('en-US', {
-                                minimumFractionDigits: 2,
+                                minimumFractionDigits: 6,
                                 maximumFractionDigits: 6,
                                 useGrouping: true
                             }).format(value);
@@ -380,8 +397,8 @@ class ExchangeRateChart {
                         callback: function(value) {
                             // Format Y-axis with proper number formatting
                             return new Intl.NumberFormat('en-US', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 3,
+                                minimumFractionDigits: 6,
+                                maximumFractionDigits: 6,
                                 useGrouping: true
                             }).format(value);
                         }
@@ -487,14 +504,20 @@ class ExchangeRateChart {
         const currentRateElement = document.querySelector('.chart-current-rate');
         if (fromDisplay && toDisplay) {
             const last = (data.data && data.data.length > 0) ? data.data[data.data.length - 1] : null;
-            const baseText = (typeof this.baseRate === 'number' && !isNaN(this.baseRate)) ? this.baseRate.toFixed(6) : '';
-            const liveText = (last !== null) ? ` ${last.toFixed(6)}` : '';
-            // Ensure left shows '1 FROM' (arrow icon is provided by HTML)
-            fromDisplay.textContent = `1 ${this.currentPair.from}`;
-            // Right shows 'TO BASE_RATE LIVE_RATE'
-            toDisplay.textContent = `${this.currentPair.to} ${baseText}${liveText}`.trim();
+            const chosenRate = (last !== null && !isNaN(last))
+                ? last
+                : (typeof this.baseRate === 'number' && !isNaN(this.baseRate) ? this.baseRate : 0);
+            // Left shows '1 FROM ='
+            fromDisplay.textContent = `1 ${this.currentPair.from} =`;
+            // Right shows '<rate> TO' with 6 decimals and comma formatting
+            const formattedRate = new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 6,
+                maximumFractionDigits: 6,
+                useGrouping: true
+            }).format(chosenRate);
+            toDisplay.textContent = `${formattedRate} ${this.currentPair.to}`;
         }
-        // Clear separate current-rate element to avoid duplicate numbers
+        // Clear separate current-rate element (removed from HTML) to avoid duplicate numbers
         if (currentRateElement) currentRateElement.textContent = '';
         
         this.chart.update('active');
@@ -508,16 +531,21 @@ class ExchangeRateChart {
         const toDisplay = document.querySelector('.chart-to');
         
         if (fromDisplay) {
-            // Always show base indicator as 1 for precision; arrow icon comes from HTML
+            // Always show base indicator as '1 FROM ='
             const displayAmount = 1;
-            fromDisplay.textContent = `${displayAmount} ${fromCurrency}`;
+            fromDisplay.textContent = `${displayAmount} ${fromCurrency} =`;
         }
         if (toDisplay) {
-            // If we have a base rate from last conversion, include it; else show currency only
+            // If we have a base rate from last conversion, include it; else show 0.000000
             if (typeof this.baseRate === 'number' && !isNaN(this.baseRate)) {
-                toDisplay.textContent = `${toCurrency} ${this.baseRate.toFixed(6)}`;
+                const formattedRate = new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 6,
+                    maximumFractionDigits: 6,
+                    useGrouping: true
+                }).format(this.baseRate);
+                toDisplay.textContent = `${formattedRate} ${toCurrency}`;
             } else {
-                toDisplay.textContent = toCurrency;
+                toDisplay.textContent = `0.000000 ${toCurrency}`;
             }
         }
         
@@ -543,37 +571,53 @@ class ExchangeRateChart {
         
         // Generate labels based on range
         const labelGenerators = {
-            '12H': (i) => `${23-i}:00`,
-            '1D': (i) => `${23-i}:00`,
+            '12H': (i) => {
+                const utcDate = new Date();
+                const utcTime = new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000));
+                utcTime.setUTCHours(utcTime.getUTCHours() - (23-i));
+                return `${String(utcTime.getUTCHours()).padStart(2, '0')}:00`;
+            },
+            '1D': (i) => {
+                const utcDate = new Date();
+                const utcTime = new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000));
+                utcTime.setUTCHours(utcTime.getUTCHours() - (23-i));
+                return `${String(utcTime.getUTCHours()).padStart(2, '0')}:00`;
+            },
             '1W': (i) => {
                 const date = new Date();
-                date.setDate(date.getDate() - (6-i));
-                return date.toLocaleDateString('en-US', { weekday: 'short' });
+                const utcDate = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
+                utcDate.setUTCDate(utcDate.getUTCDate() - (6-i));
+                return utcDate.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
             },
             '1M': (i) => {
                 const date = new Date();
-                date.setDate(date.getDate() - (29-i));
-                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const utcDate = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
+                utcDate.setUTCDate(utcDate.getUTCDate() - (29-i));
+                return utcDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
             },
             '1Y': (i) => {
                 const date = new Date();
-                date.setMonth(date.getMonth() - (11-i));
-                return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+                const utcDate = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
+                utcDate.setUTCMonth(utcDate.getUTCMonth() - (11-i));
+                return utcDate.toLocaleDateString('en-US', { month: 'short', year: '2-digit', timeZone: 'UTC' });
             },
             '2Y': (i) => {
                 const date = new Date();
-                date.setMonth(date.getMonth() - (23-i));
-                return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+                const utcDate = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
+                utcDate.setUTCMonth(utcDate.getUTCMonth() - (23-i));
+                return utcDate.toLocaleDateString('en-US', { month: 'short', year: '2-digit', timeZone: 'UTC' });
             },
             '5Y': (i) => {
                 const date = new Date();
-                date.setMonth(date.getMonth() - (59-i));
-                return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+                const utcDate = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
+                utcDate.setUTCMonth(utcDate.getUTCMonth() - (59-i));
+                return utcDate.toLocaleDateString('en-US', { month: 'short', year: '2-digit', timeZone: 'UTC' });
             },
             '10Y': (i) => {
                 const date = new Date();
-                date.setMonth(date.getMonth() - (119-i));
-                return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+                const utcDate = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
+                utcDate.setUTCMonth(utcDate.getUTCMonth() - (119-i));
+                return utcDate.toLocaleDateString('en-US', { month: 'short', year: '2-digit', timeZone: 'UTC' });
             }
         };
         
@@ -617,9 +661,16 @@ class ExchangeRateChart {
         const fromDisplay = document.querySelector('.chart-from');
         const toDisplay = document.querySelector('.chart-to');
         
-        // Always show indicator as: 1 FROM (arrow icon in HTML) TO BASE_RATE (live rate appended by updateChart)
-        if (fromDisplay) fromDisplay.textContent = `1 ${fromCurrency}`;
-        if (toDisplay) toDisplay.textContent = `${toCurrency} ${(exchangeRate).toFixed(6)}`;
+        // Always show indicator as: '1 FROM =' and '<rate> TO' with comma formatting
+        if (fromDisplay) fromDisplay.textContent = `1 ${fromCurrency} =`;
+        if (toDisplay) {
+            const formattedRate = new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 6,
+                maximumFractionDigits: 6,
+                useGrouping: true
+            }).format(exchangeRate);
+            toDisplay.textContent = `${formattedRate} ${toCurrency}`;
+        }
         
         this.updateChart();
         
@@ -648,8 +699,7 @@ class ExchangeRateChart {
                 const last = dataset.data.length > 0 ? dataset.data[dataset.data.length - 1] : 1;
                 const change = (Math.random() - 0.5) * 0.004; // ±0.4%
                 const next = Math.max(0, last * (1 + change));
-                const now = new Date();
-                const label = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const label = formatUTCTime();
                 dataset.labels.push(label);
                 dataset.data.push(next);
                 dataset.changeData = this.calculateChangeData(dataset.data);

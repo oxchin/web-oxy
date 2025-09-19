@@ -125,10 +125,7 @@ python generate_token.py 60  # 60 minutes validity
 
 ### "JWT token not configured"
 - Generate token: `cd backend && python generate_token.py`
-- Update `JWT_TOKEN` in `cc.js`
-
-### "Token expired"
-- Generate new token with longer duration
+- Update `JWT_TOKEN` in `cc.js` with longer duration
 - Update frontend configuration
 
 ### CORS Errors

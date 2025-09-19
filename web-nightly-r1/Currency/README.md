@@ -22,6 +22,7 @@ Currency/
 │   ├── render.yaml       # Render deployment config
 │   └── README.md         # Backend documentation
 ├── .gitignore            # Enhanced git ignore rules
+├── LICENSE               # GPL-3.0 License
 ├── DEPLOYMENT_GUIDE.md   # Complete deployment guide
 └── README.md             # This file
 ```
@@ -149,9 +150,9 @@ python generate_token.py 60  # 60 minutes
 - **API errors**: Verify API key and backend status
 - **Network issues**: Check backend URL and connectivity
 
-## 📝 License
+## 📄 License
 
-This project is part of the web-oxy repository.
+This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) file for details.
 
 ## 🤝 Contributing
 

@@ -479,7 +479,8 @@ let currentSuggestions = [];
 async function fetchMultipleEndpoints(endpoints) {
     try {
         const promises = endpoints.map(async (endpoint) => {
-            const response = await fetch(`${CONFIG.API_BASE_URL}${endpoint.url}`);
+            // endpoint.url should already be a fully-built absolute URL
+            const response = await fetch(endpoint.url);
             if (!response.ok) {
                 throw new Error(`${endpoint.name} failed: ${response.status}`);
             }
@@ -526,7 +527,7 @@ async function fetchSupportedCurrencies() {
     
     try {
         if (CONFIG.DEBUG_MODE) {
-            console.log('🌐 Fetching currencies from:', `${CONFIG.API_BASE_URL}/api/currencies`);
+            console.log('🌐 Fetching currencies from:', buildApiUrl('currencies'));
         }
         
         // Parallel fetch currencies and regions for better performance
@@ -772,15 +773,15 @@ function updateFlag(select) {
 // ===== EXCHANGE RATE FUNCTIONS =====
 // Format currency display with consistent thousand separators
 function formatCurrencyDisplay(amount, fromCurrency, toCurrency, rate) {
-    const totalAmount = (amount * rate).toFixed(2);
+    const totalAmount = (amount * rate).toFixed(6);
     
-    // Format left side (input amount) with thousand separators
-    const formattedAmount = formatNumberDisplay(amount.toFixed(2));
+    // Format left side (input amount) with thousand separators (six decimals default)
+    const formattedAmount = formatNumberDisplay(Number(amount).toFixed(6));
     
-    // Format right side (result) with thousand separators - no currency symbol
+    // Format right side (result) with thousand separators - six decimals, no currency symbol prefix
     const formattedTotal = formatNumberDisplay(totalAmount);
     
-    return `${formattedAmount} ${fromCurrency} = ${toCurrency} ${formattedTotal}`;
+    return `${formattedAmount} ${fromCurrency} = ${formattedTotal} ${toCurrency}`;
 }
 
 // Enhanced API response handling with validation
@@ -1043,30 +1044,54 @@ async function getExchangeRate() {
 
 // Currency swap functionality
 function swapCurrencies() {
+    if (CONFIG.DEBUG_MODE) {
+        console.log(`🔄 Before swap: FROM=${currentFromCurrency}, TO=${currentToCurrency}`);
+    }
+    
     // Swap currency codes
     const tempCurrency = currentFromCurrency;
     currentFromCurrency = currentToCurrency;
     currentToCurrency = tempCurrency;
+    
+    // Update global window variables for HTML modal compatibility
+    window.currentFromCurrency = currentFromCurrency;
+    window.currentToCurrency = currentToCurrency;
     
     // Swap display values
     const tempValue = fromSearch.value;
     fromSearch.value = toSearch.value;
     toSearch.value = tempValue;
     
-    // Update chart currency pair display immediately
-    updateChartCurrencyPair(currentFromCurrency, currentToCurrency);
-    
     // Swap data attributes
     const tempData = fromSearch.dataset.currency;
     fromSearch.dataset.currency = toSearch.dataset.currency;
     toSearch.dataset.currency = tempData;
     
+    // Also update data-full-name attributes
+    const tempFullName = fromSearch.dataset.fullName;
+    fromSearch.dataset.fullName = toSearch.dataset.fullName;
+    toSearch.dataset.fullName = tempFullName;
+    
     // Swap flag images
     const fromFlag = document.getElementById('from-flag');
     const toFlag = document.getElementById('to-flag');
-    const tempSrc = fromFlag.src;
-    fromFlag.src = toFlag.src;
-    toFlag.src = tempSrc;
+    if (fromFlag && toFlag) {
+        const tempSrc = fromFlag.src;
+        const tempAlt = fromFlag.alt;
+        fromFlag.src = toFlag.src;
+        fromFlag.alt = toFlag.alt;
+        toFlag.src = tempSrc;
+        toFlag.alt = tempAlt;
+    }
+    
+    // Update chart currency pair display immediately
+    if (window.exchangeRateChart && typeof window.exchangeRateChart.updateCurrencyPair === 'function') {
+        window.exchangeRateChart.updateCurrencyPair(currentFromCurrency, currentToCurrency);
+    }
+    
+    if (CONFIG.DEBUG_MODE) {
+        console.log(`🔄 After swap: FROM=${currentFromCurrency}, TO=${currentToCurrency}`);
+    }
     
     // Fetch new rate after swap
     getExchangeRate();
@@ -1415,7 +1440,11 @@ async function initApp() {
     }
 
     // Add event listeners
-    exchangeIcon.addEventListener("click", swapCurrencies);
+    if (exchangeIcon) {
+        exchangeIcon.addEventListener("click", swapCurrencies);
+    } else {
+        console.error('❌ Reverse button (.reverse) not found in DOM');
+    }
     
     // Add convert button event listener
     const convertButton = document.querySelector("#convert-button");
