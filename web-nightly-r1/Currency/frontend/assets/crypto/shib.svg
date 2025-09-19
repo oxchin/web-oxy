@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <circle cx="16" cy="16" r="16" fill="#FFA409"/>
+  <path d="M8 12h16v8H8z" fill="white"/>
+  <text x="16" y="18" text-anchor="middle" fill="#FFA409" font-family="Arial, sans-serif" font-size="8" font-weight="bold">SHIB</text>
+</svg>

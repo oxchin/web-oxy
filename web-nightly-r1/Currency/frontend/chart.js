@@ -526,156 +526,18 @@ class ExchangeRateChart {
     updateCurrencyPair(fromCurrency, toCurrency) {
         this.currentPair = { from: fromCurrency, to: toCurrency };
         
-        // Update currency pair display with input amount if available
-        const fromDisplay = document.querySelector('.chart-from');
-        const toDisplay = document.querySelector('.chart-to');
-        
-        if (fromDisplay) {
-            // Always show base indicator as '1 FROM ='
-            const displayAmount = 1;
-            fromDisplay.textContent = `${displayAmount} ${fromCurrency} =`;
-        }
-        if (toDisplay) {
-            // If we have a base rate from last conversion, include it; else show 0.000000
-            if (typeof this.baseRate === 'number' && !isNaN(this.baseRate)) {
-                const formattedRate = new Intl.NumberFormat('en-US', {
-                    minimumFractionDigits: 6,
-                    maximumFractionDigits: 6,
-                    useGrouping: true
-                }).format(this.baseRate);
-                toDisplay.textContent = `${formattedRate} ${toCurrency}`;
-            } else {
-                toDisplay.textContent = `0.000000 ${toCurrency}`;
-            }
-        }
-        
-        // Update chart
-        this.updateChart();
-    }
-    
-    generateHistoricalData(baseRate, range) {
-        const dataPoints = {
-            '12H': 24,
-            '1D': 24,
-            '1W': 7,
-            '1M': 30,
-            '1Y': 12,
-            '2Y': 24,
-            '5Y': 60,
-            '10Y': 120
-        };
-        
-        const count = dataPoints[range] || 24;
-        const labels = [];
-        const data = [];
-        
-        // Generate labels based on range
-        const labelGenerators = {
-            '12H': (i) => {
-                const utcDate = new Date();
-                const utcTime = new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000));
-                utcTime.setUTCHours(utcTime.getUTCHours() - (23-i));
-                return `${String(utcTime.getUTCHours()).padStart(2, '0')}:00`;
-            },
-            '1D': (i) => {
-                const utcDate = new Date();
-                const utcTime = new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000));
-                utcTime.setUTCHours(utcTime.getUTCHours() - (23-i));
-                return `${String(utcTime.getUTCHours()).padStart(2, '0')}:00`;
-            },
-            '1W': (i) => {
-                const date = new Date();
-                const utcDate = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
-                utcDate.setUTCDate(utcDate.getUTCDate() - (6-i));
-                return utcDate.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
-            },
-            '1M': (i) => {
-                const date = new Date();
-                const utcDate = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
-                utcDate.setUTCDate(utcDate.getUTCDate() - (29-i));
-                return utcDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
-            },
-            '1Y': (i) => {
-                const date = new Date();
-                const utcDate = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
-                utcDate.setUTCMonth(utcDate.getUTCMonth() - (11-i));
-                return utcDate.toLocaleDateString('en-US', { month: 'short', year: '2-digit', timeZone: 'UTC' });
-            },
-            '2Y': (i) => {
-                const date = new Date();
-                const utcDate = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
-                utcDate.setUTCMonth(utcDate.getUTCMonth() - (23-i));
-                return utcDate.toLocaleDateString('en-US', { month: 'short', year: '2-digit', timeZone: 'UTC' });
-            },
-            '5Y': (i) => {
-                const date = new Date();
-                const utcDate = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
-                utcDate.setUTCMonth(utcDate.getUTCMonth() - (59-i));
-                return utcDate.toLocaleDateString('en-US', { month: 'short', year: '2-digit', timeZone: 'UTC' });
-            },
-            '10Y': (i) => {
-                const date = new Date();
-                const utcDate = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
-                utcDate.setUTCMonth(utcDate.getUTCMonth() - (119-i));
-                return utcDate.toLocaleDateString('en-US', { month: 'short', year: '2-digit', timeZone: 'UTC' });
-            }
-        };
-        
-        const labelGen = labelGenerators[range] || labelGenerators['12H'];
-        
-        // Generate synthetic historical data with realistic fluctuations
-        for (let i = 0; i < count; i++) {
-            labels.push(labelGen(i));
-            
-            // Create realistic price movement: start lower, trend toward current rate
-            const progress = i / (count - 1);
-            const trendFactor = 0.85 + (progress * 0.15); // Start at 85%, end at 100%
-            const randomFactor = 0.95 + (Math.random() * 0.1); // ±5% random variation
-            const syntheticRate = baseRate * trendFactor * randomFactor;
-            
-            data.push(syntheticRate);
-        }
-        
-        return { labels, data };
-    }
-    
-    // Method to add conversion result to chart and generate historical data
-    addConversionData(fromCurrency, toCurrency, exchangeRate, amount, convertedAmount) {
-        // Update current pair
-        this.currentPair = { from: fromCurrency, to: toCurrency };
-        // Remember base rate for 1 unit display
-        this.baseRate = exchangeRate;
-        
-        // Store the input amount for display
-        this.inputAmount = amount;
-        
-        // Generate historical data for all time ranges based on current rate
-        Object.keys(this.chartData).forEach(range => {
-            const historicalData = this.generateHistoricalData(exchangeRate, range);
-            this.chartData[range].labels = historicalData.labels;
-            this.chartData[range].data = historicalData.data;
-            this.chartData[range].changeData = this.calculateChangeData(historicalData.data);
-        });
-        
         // Update currency pair display with input amount
         const fromDisplay = document.querySelector('.chart-from');
         const toDisplay = document.querySelector('.chart-to');
         
-        // Always show indicator as: '1 FROM =' and '<rate> TO' with comma formatting
-        if (fromDisplay) fromDisplay.textContent = `1 ${fromCurrency} =`;
-        if (toDisplay) {
-            const formattedRate = new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 6,
-                maximumFractionDigits: 6,
-                useGrouping: true
-            }).format(exchangeRate);
-            toDisplay.textContent = `${formattedRate} ${toCurrency}`;
-        }
+        // Always show indicator as: 1 FROM (arrow icon in HTML) TO BASE_RATE (live rate appended by updateChart)
+        if (fromDisplay) fromDisplay.textContent = `1 ${fromCurrency}`;
+        if (toDisplay) toDisplay.textContent = `${toCurrency}`;
         
         this.updateChart();
         
         if (window.APP_CONFIG?.DEBUG_MODE) {
-            console.log(`📊 Chart updated with historical data: ${amount} ${fromCurrency} = ${convertedAmount.toFixed(2)} ${toCurrency} (rate: ${exchangeRate.toFixed(6)})`);
+            console.log(`📊 Chart updated with historical data`);
         }
     }
     

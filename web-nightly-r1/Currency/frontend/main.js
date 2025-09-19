@@ -465,8 +465,13 @@ async function ensureJwtLoaded() {
 }
 
 // Import flag and crypto utilities
-import { updateFlagImage, createFlagImage, preloadFlags, MAJOR_CURRENCY_FLAGS, updateCurrencyIconSmart } from './utils/flags.js';
+import { updateFlagImage, createFlagImage, preloadFlags, MAJOR_CURRENCY_FLAGS, updateCurrencyIconSmart, getFlagSvgPath } from './utils/flags.js';
 import { isCryptocurrency, preloadCryptoIcons, MAJOR_CRYPTOCURRENCIES, createCurrencyIcon } from './utils/crypto-icons.js';
+
+// Expose flag helper for inline script to avoid hardcoded /node_modules paths
+if (typeof window !== 'undefined') {
+    window.KconvertFlags = { getFlagSvgPath };
+}
 
 // DOM elements
 let fromSearch, toSearch, amount, exRateTxt, exchangeIcon, fromSuggestions, toSuggestions;

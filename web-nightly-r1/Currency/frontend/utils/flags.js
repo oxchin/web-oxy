@@ -6,6 +6,56 @@
 // Import crypto utilities for unified currency icon handling
 import { isCryptocurrency, getCurrencyIcon, updateCurrencyIcon as updateUniversalIcon } from './crypto-icons.js';
 
+// Import flags from local assets directory
+import usFlag from '../assets/flags/US.svg?url';
+import sgFlag from '../assets/flags/SG.svg?url';
+import gbFlag from '../assets/flags/GB.svg?url';
+import euFlag from '../assets/flags/EU.svg?url';
+import jpFlag from '../assets/flags/JP.svg?url';
+import auFlag from '../assets/flags/AU.svg?url';
+import caFlag from '../assets/flags/CA.svg?url';
+import chFlag from '../assets/flags/CH.svg?url';
+import cnFlag from '../assets/flags/CN.svg?url';
+import seFlag from '../assets/flags/SE.svg?url';
+import nzFlag from '../assets/flags/NZ.svg?url';
+import mxFlag from '../assets/flags/MX.svg?url';
+import hkFlag from '../assets/flags/HK.svg?url';
+import noFlag from '../assets/flags/NO.svg?url';
+import krFlag from '../assets/flags/KR.svg?url';
+import trFlag from '../assets/flags/TR.svg?url';
+import ruFlag from '../assets/flags/RU.svg?url';
+import inFlag from '../assets/flags/IN.svg?url';
+import brFlag from '../assets/flags/BR.svg?url';
+import zaFlag from '../assets/flags/ZA.svg?url';
+import dkFlag from '../assets/flags/DK.svg?url';
+import plFlag from '../assets/flags/PL.svg?url';
+import twFlag from '../assets/flags/TW.svg?url';
+import thFlag from '../assets/flags/TH.svg?url';
+import idFlag from '../assets/flags/ID.svg?url';
+import huFlag from '../assets/flags/HU.svg?url';
+import czFlag from '../assets/flags/CZ.svg?url';
+import ilFlag from '../assets/flags/IL.svg?url';
+import clFlag from '../assets/flags/CL.svg?url';
+import phFlag from '../assets/flags/PH.svg?url';
+import aeFlag from '../assets/flags/AE.svg?url';
+import coFlag from '../assets/flags/CO.svg?url';
+import saFlag from '../assets/flags/SA.svg?url';
+import myFlag from '../assets/flags/MY.svg?url';
+import roFlag from '../assets/flags/RO.svg?url';
+import unFlag from '../assets/flags/UN.svg?url';
+
+// Manual mapping of flags we support
+const FLAG_URLS = {
+    'US': usFlag, 'SG': sgFlag, 'GB': gbFlag, 'EU': euFlag, 'JP': jpFlag,
+    'AU': auFlag, 'CA': caFlag, 'CH': chFlag, 'CN': cnFlag, 'SE': seFlag,
+    'NZ': nzFlag, 'MX': mxFlag, 'HK': hkFlag, 'NO': noFlag, 'KR': krFlag,
+    'TR': trFlag, 'RU': ruFlag, 'IN': inFlag, 'BR': brFlag, 'ZA': zaFlag,
+    'DK': dkFlag, 'PL': plFlag, 'TW': twFlag, 'TH': thFlag, 'ID': idFlag,
+    'HU': huFlag, 'CZ': czFlag, 'IL': ilFlag, 'CL': clFlag, 'PH': phFlag,
+    'AE': aeFlag, 'CO': coFlag, 'SA': saFlag, 'MY': myFlag, 'RO': roFlag,
+    'UN': unFlag
+};
+
 /**
  * Get flag SVG path for a country code
  * @param {string} countryCode - Two-letter country code (e.g., 'US', 'GB')
@@ -13,11 +63,11 @@ import { isCryptocurrency, getCurrencyIcon, updateCurrencyIcon as updateUniversa
  */
 export function getFlagSvgPath(countryCode) {
     if (!countryCode || countryCode.length !== 2) {
-        return '/node_modules/country-flag-icons/3x2/UN.svg'; // Fallback to UN flag
+        return FLAG_URLS['UN'] || '';
     }
-    
+
     const code = countryCode.toUpperCase();
-    return `/node_modules/country-flag-icons/3x2/${code}.svg`;
+    return FLAG_URLS[code] || FLAG_URLS['UN'] || '';
 }
 
 /**
@@ -88,8 +138,8 @@ export function updateCurrencyIconSmart(imgElement, currencyCode, countryCode = 
  */
 export async function getFlagSvgInline(countryCode) {
     try {
-        const svgPath = getFlagSvgPath(countryCode);
-        const response = await fetch(svgPath);
+        const svgUrl = getFlagSvgPath(countryCode);
+        const response = await fetch(svgUrl);
         
         if (!response.ok) {
             throw new Error(`Failed to load flag: ${response.status}`);

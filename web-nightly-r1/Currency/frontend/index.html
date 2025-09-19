@@ -48,11 +48,12 @@
         
         <div class="version-badge">Stellar Edition 1.5</div>
         
-        <!-- Fire Arrow Scroll Indicator -->
+        <!-- Gem Indicator to bottom -->
         <div class="gem-scroll-indicator">
             <div class="gem-blue">
                 <div class="gem-core"></div>
             </div>
+            <div class="gem-sub"></div>
         </div>
     </div>
 
@@ -72,7 +73,7 @@
               <div class="from">
                   <p>From</p>
                   <div class="search-input-container" data-type="from">
-                      <img id="from-flag" src="/node_modules/country-flag-icons/3x2/US.svg" alt="US Dollar flag" class="flag-indicator">
+                      <img id="from-flag" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="US Dollar flag" class="flag-indicator">
                       <input type="text" class="currency-search from-search form2" 
                              placeholder="USD - United States Dollar" 
                              aria-label="Search from currency"
@@ -89,7 +90,7 @@
               <div class="to">
                   <p>To</p>
                   <div class="search-input-container" data-type="to">
-                      <img id="to-flag" src="/node_modules/country-flag-icons/3x2/SG.svg" alt="Singapore Dollar flag" class="flag-indicator">
+                      <img id="to-flag" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="Singapore Dollar flag" class="flag-indicator">
                       <input type="text" class="currency-search to-search form3" 
                              placeholder="SGD - Singapore Dollar" 
                              aria-label="Search to currency"
@@ -125,7 +126,7 @@
             </button>
             <button class="chart-type-btn" data-type="bar">
                 <i class="fas fa-chart-bar"></i>
-                <span>Change %</span>
+                <span>Chg</span>
             </button>
         </div>
         
@@ -473,15 +474,23 @@
       }
 
       function renderCurrencyList(currencies) {
-        modalCurrencyList.innerHTML = currencies.map((currency, index) => `
+        modalCurrencyList.innerHTML = currencies.map((currency, index) => {
+          const codeUpper = String(currency.flag || 'UN').toUpperCase();
+          const flagUrl = (window.KconvertFlags && window.KconvertFlags.getFlagSvgPath)
+            ? window.KconvertFlags.getFlagSvgPath(codeUpper)
+            : '';
+          const fallbackUrl = (window.KconvertFlags && window.KconvertFlags.getFlagSvgPath)
+            ? window.KconvertFlags.getFlagSvgPath('UN')
+            : '';
+          return `
           <div class="suggestion-item" data-currency="${currency.code}" data-name="${currency.name}" data-flag="${currency.flag}" style="animation-delay: ${index * 0.02}s">
-            <img class="suggestion-flag" src="/node_modules/country-flag-icons/3x2/${currency.flag.toUpperCase()}.svg" alt="${currency.name} flag" onerror="this.src='/node_modules/country-flag-icons/3x2/UN.svg'">
+            <img class="suggestion-flag" src="${flagUrl}" alt="${currency.name} flag" onerror="this.src='${fallbackUrl}'">
             <div class="suggestion-text">
               <div class="suggestion-code">${currency.code}</div>
               <div class="suggestion-name">${currency.name}</div>
             </div>
-          </div>
-        `).join('');
+          </div>`;
+        }).join('');
       }
       
       // Enhanced search functionality
@@ -509,7 +518,14 @@
           // Update flag
           const flagImg = currentSearchInput.parentElement.querySelector('.flag-indicator');
           if (flagImg) {
-            flagImg.src = `/node_modules/country-flag-icons/3x2/${flag.toUpperCase()}.svg`;
+            const codeUpper = String(flag || 'UN').toUpperCase();
+            const flagUrl = (window.KconvertFlags && window.KconvertFlags.getFlagSvgPath)
+              ? window.KconvertFlags.getFlagSvgPath(codeUpper)
+              : '';
+            const fallbackUrl = (window.KconvertFlags && window.KconvertFlags.getFlagSvgPath)
+              ? window.KconvertFlags.getFlagSvgPath('UN')
+              : '';
+            flagImg.src = flagUrl || fallbackUrl;
             flagImg.alt = `${name} flag`;
           }
           

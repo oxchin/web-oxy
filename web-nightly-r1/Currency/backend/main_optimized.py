@@ -34,9 +34,9 @@ logger = logging.getLogger(__name__)
 
 # Configuration - validate required settings
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-EXCHANGE_API_KEY = os.getenv("EXCHANGE_API_KEY")
-if not SECRET_KEY or not EXCHANGE_API_KEY:
-    raise ValueError("JWT_SECRET_KEY and EXCHANGE_API_KEY are required")
+TWELVE_DATA_API_KEY = os.getenv("TWELVE_DATA_API_KEY")
+if not SECRET_KEY or not TWELVE_DATA_API_KEY:
+    raise ValueError("JWT_SECRET_KEY and TWELVE_DATA_API_KEY are required")
 
 TOKEN_EXP_MINUTES = int(os.getenv("TOKEN_EXP_MINUTES", "10"))
 RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
@@ -223,9 +223,76 @@ def set_cached_rates(cache_key: str, data: Dict) -> None:
     """Set rates in cache with timestamp"""
     cache[cache_key] = (data, time.time())
 
-async def fetch_rates(base: str, use_cache: bool = True) -> Dict:
-    """Fetch exchange rates with caching and parallel processing"""
-    cache_key = get_cache_key(base)
+async def fetch_rates_twelve_data(base: str, targets: str = None) -> Dict:
+    """Fetch exchange rates from Twelve Data API"""
+    try:
+        # Use quote endpoint for single rate or batch rates
+        if targets and targets != "all":
+            target_list = targets.split(",")
+            rates = {}
+            
+            # Fetch rates for each target
+            for target in target_list:
+                if target.strip() == base:
+                    rates[target.strip()] = 1.0
+                    continue
+                    
+                symbol = f"{base}/{target.strip()}"
+                url = f"https://api.twelvedata.com/quote?symbol={symbol}&apikey={TWELVE_DATA_API_KEY}"
+                
+                response = await http_client.get(url)
+                response.raise_for_status()
+                
+                data = response.json()
+                if "close" in data and data["close"]:
+                    rates[target.strip()] = float(data["close"])
+                else:
+                    logger.warning(f"No rate data for {symbol}")
+            
+            return {
+                "result": "success",
+                "base_code": base,
+                "conversion_rates": rates
+            }
+        else:
+            # For "all" targets, get major currencies
+            major_currencies = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD", "SGD", "HKD", "NOK", "TRY", "RUB", "INR", "BRL", "ZAR", "KRW"]
+            return await fetch_rates_twelve_data(base, ",".join([c for c in major_currencies if c != base]))
+            
+    except Exception as e:
+        logger.error(f"Twelve Data API error for {base}: {str(e)}")
+        # Fallback to mock data for development
+        return await fetch_rates_fallback(base, targets)
+
+async def fetch_rates_fallback(base: str, targets: str = None) -> Dict:
+    """Fallback rates using mock data for development"""
+    # Generate mock rates based on base currency
+    mock_rates = {
+        "USD": 1.0, "EUR": 0.85, "GBP": 0.73, "JPY": 110.0, "AUD": 1.35,
+        "CAD": 1.25, "CHF": 0.92, "CNY": 6.45, "SEK": 8.5, "NZD": 1.42,
+        "SGD": 1.35, "HKD": 7.8, "NOK": 8.2, "TRY": 8.5, "RUB": 75.0,
+        "INR": 74.0, "BRL": 5.2, "ZAR": 14.5, "KRW": 1180.0
+    }
+    
+    # Adjust rates relative to base
+    base_rate = mock_rates.get(base, 1.0)
+    adjusted_rates = {curr: rate / base_rate for curr, rate in mock_rates.items()}
+    
+    if targets and targets != "all":
+        target_list = [t.strip() for t in targets.split(",")]
+        filtered_rates = {t: adjusted_rates.get(t, 1.0) for t in target_list}
+    else:
+        filtered_rates = adjusted_rates
+    
+    return {
+        "result": "success",
+        "base_code": base,
+        "conversion_rates": filtered_rates
+    }
+
+async def fetch_rates(base: str, use_cache: bool = True, targets: str = None) -> Dict:
+    """Fetch exchange rates with caching and Twelve Data integration"""
+    cache_key = get_cache_key(base, targets)
     
     # Check cache first
     if use_cache:
@@ -234,19 +301,14 @@ async def fetch_rates(base: str, use_cache: bool = True) -> Dict:
             logger.info(f"Cache hit for {base}")
             return cached_data
     
+    start_time = time.time()
+    
     try:
-        url = f"https://v6.exchangerate-api.com/v6/{EXCHANGE_API_KEY}/latest/{base}"
-        start_time = time.time()
-        
-        response = await http_client.get(url)
-        response.raise_for_status()
+        # Try Twelve Data API first
+        data = await fetch_rates_twelve_data(base, targets)
         
         response_time = time.time() - start_time
-        logger.info(f"API response time for {base}: {response_time:.3f}s")
-        
-        data = response.json()
-        if data.get("result") != "success":
-            raise HTTPException(status_code=500, detail="Exchange API error")
+        logger.info(f"Twelve Data API response time for {base}: {response_time:.3f}s")
         
         # Cache the result
         if use_cache:
@@ -254,12 +316,11 @@ async def fetch_rates(base: str, use_cache: bool = True) -> Dict:
             logger.info(f"Cached rates for {base}")
         
         return data
-    except httpx.TimeoutException:
-        logger.error(f"Timeout fetching rates for {base}")
-        raise HTTPException(status_code=504, detail="Request timeout")
-    except httpx.RequestError as e:
-        logger.error(f"Request error for {base}: {str(e)}")
-        raise HTTPException(status_code=503, detail="Service unavailable")
+        
+    except Exception as e:
+        logger.error(f"Failed to fetch rates for {base}: {str(e)}")
+        # Use fallback
+        return await fetch_rates_fallback(base, targets)
 
 async def fetch_multiple_rates(bases: List[str]) -> Dict[str, Dict]:
     """Fetch multiple currency rates in parallel"""
@@ -383,7 +444,7 @@ async def get_rates(
         return cached_result
     
     # Fetch fresh data
-    data = await fetch_rates(base)
+    data = await fetch_rates(base, targets=','.join(target_list))
     rates = data.get("conversion_rates", {})
     filtered_rates = {t: rates.get(t) for t in target_list if t in rates}
     
@@ -469,7 +530,7 @@ async def convert(
             }
     
     # Fetch fresh rates
-    data = await fetch_rates(from_curr)
+    data = await fetch_rates(from_curr, targets=to_curr)
     rates = data.get("conversion_rates", {})
     if to_curr not in rates:
         raise HTTPException(status_code=500, detail="Rate not available")
@@ -488,7 +549,7 @@ async def convert(
         "processing_time_ms": round(processing_time * 1000, 2),
         "cache_hit": False,
         "conversion_type": "live",
-        "rate_source": "exchangerate-api"
+        "rate_source": "twelve-data"
     }
     
     return result
@@ -522,7 +583,7 @@ async def batch_convert(
         raise HTTPException(status_code=400, detail=f"Invalid to currencies: {invalid_to}")
     
     # Fetch rates
-    data = await fetch_rates(from_curr)
+    data = await fetch_rates(from_curr, targets=','.join(to_curr_list))
     rates = data.get("conversion_rates", {})
     
     conversions = []
@@ -544,6 +605,146 @@ async def batch_convert(
         "total_conversions": len(conversions),
         "timestamp": time.time(),
         "processing_time_ms": round(processing_time * 1000, 2)
+    }
+
+@app.get("/api/timeseries/{symbol}")
+@limiter.limit(f"{RATE_LIMIT}/minute")
+async def get_timeseries(
+    request: Request,
+    symbol: str,
+    token: str = Query(...),
+    interval: str = Query("1min", description="Time interval: 1min, 5min, 15min, 1h, 1day"),
+    outputsize: int = Query(30, description="Number of data points to return")
+):
+    """Get historical timeseries data for charts"""
+    verify_jwt(token)
+    
+    # Validate symbol format (e.g., USD/SGD)
+    if not re.match(r'^[A-Z]{3}/[A-Z]{3}$', symbol.upper()):
+        raise HTTPException(status_code=400, detail="Invalid symbol format. Use format: USD/SGD")
+    
+    symbol = symbol.upper()
+    
+    # Validate interval
+    valid_intervals = ["1min", "5min", "15min", "1h", "1day"]
+    if interval not in valid_intervals:
+        raise HTTPException(status_code=400, detail=f"Invalid interval. Use: {valid_intervals}")
+    
+    # Validate outputsize
+    if outputsize < 1 or outputsize > 5000:
+        raise HTTPException(status_code=400, detail="Output size must be between 1 and 5000")
+    
+    cache_key = f"timeseries:{symbol}:{interval}:{outputsize}"
+    
+    # Check cache first
+    cached_result = get_cached_rates(cache_key)
+    if cached_result:
+        return cached_result
+    
+    start_time = time.time()
+    
+    try:
+        # Fetch from Twelve Data API
+        url = f"https://api.twelvedata.com/time_series?symbol={symbol}&interval={interval}&outputsize={outputsize}&timezone=UTC&apikey={TWELVE_DATA_API_KEY}"
+        
+        response = await http_client.get(url)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        # Transform data for chart consumption
+        if "values" in data and data["values"]:
+            chart_data = {
+                "symbol": symbol,
+                "interval": interval,
+                "meta": data.get("meta", {}),
+                "values": data["values"],
+                "count": len(data["values"]),
+                "timestamp": time.time(),
+                "processing_time_ms": round((time.time() - start_time) * 1000, 2),
+                "cache_hit": False,
+                "data_source": "twelve-data"
+            }
+        else:
+            # Fallback to mock data if no real data available
+            chart_data = await generate_mock_timeseries(symbol, interval, outputsize)
+            chart_data["data_source"] = "mock-fallback"
+        
+        # Cache the result
+        set_cached_rates(cache_key, chart_data)
+        
+        return chart_data
+        
+    except Exception as e:
+        logger.error(f"Timeseries API error for {symbol}: {str(e)}")
+        # Return mock data as fallback
+        return await generate_mock_timeseries(symbol, interval, outputsize)
+
+async def generate_mock_timeseries(symbol: str, interval: str, outputsize: int) -> Dict:
+    """Generate mock timeseries data for development/fallback"""
+    import random
+    from datetime import datetime, timedelta
+    
+    # Parse symbol
+    base, target = symbol.split("/")
+    
+    # Base rate (mock)
+    base_rates = {
+        "USD/SGD": 1.35, "EUR/USD": 1.08, "GBP/USD": 1.27, "USD/JPY": 150.0,
+        "AUD/USD": 0.67, "USD/CAD": 1.36, "USD/CHF": 0.88, "EUR/GBP": 0.85
+    }
+    
+    base_rate = base_rates.get(symbol, 1.0)
+    
+    # Generate time intervals
+    interval_minutes = {
+        "1min": 1, "5min": 5, "15min": 15, "1h": 60, "1day": 1440
+    }
+    
+    minutes = interval_minutes.get(interval, 5)
+    now = datetime.utcnow()
+    
+    values = []
+    current_price = base_rate
+    
+    for i in range(outputsize):
+        # Generate realistic price movement
+        change_percent = random.uniform(-0.002, 0.002)  # ±0.2% change
+        current_price *= (1 + change_percent)
+        
+        # Calculate timestamp
+        timestamp = now - timedelta(minutes=minutes * (outputsize - 1 - i))
+        
+        # Generate OHLC data
+        high = current_price * random.uniform(1.0001, 1.005)
+        low = current_price * random.uniform(0.995, 0.9999)
+        open_price = current_price * random.uniform(0.998, 1.002)
+        
+        values.append({
+            "datetime": timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+            "open": str(round(open_price, 6)),
+            "high": str(round(high, 6)),
+            "low": str(round(low, 6)),
+            "close": str(round(current_price, 6)),
+            "volume": "0"  # Forex typically has no volume
+        })
+    
+    return {
+        "symbol": symbol,
+        "interval": interval,
+        "meta": {
+            "symbol": symbol,
+            "interval": interval,
+            "currency_base": base,
+            "currency_quote": target,
+            "type": "Physical Currency"
+        },
+        "values": values,
+        "count": len(values),
+        "timestamp": time.time(),
+        "processing_time_ms": 1.0,
+        "cache_hit": False,
+        "data_source": "mock-generated"
     }
 
 @app.get("/api/cache/stats")

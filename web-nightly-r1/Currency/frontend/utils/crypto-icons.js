@@ -3,18 +3,45 @@
  * Provides local SVG crypto icons for better performance
  */
 
+// Import crypto icons from local assets directory
+import btcIcon from '../assets/crypto/btc.svg?url';
+import ethIcon from '../assets/crypto/eth.svg?url';
+import adaIcon from '../assets/crypto/ada.svg?url';
+import xrpIcon from '../assets/crypto/xrp.svg?url';
+import ltcIcon from '../assets/crypto/ltc.svg?url';
+import bchIcon from '../assets/crypto/bch.svg?url';
+import dotIcon from '../assets/crypto/dot.svg?url';
+import linkIcon from '../assets/crypto/link.svg?url';
+import bnbIcon from '../assets/crypto/bnb.svg?url';
+import solIcon from '../assets/crypto/sol.svg?url';
+import maticIcon from '../assets/crypto/matic.svg?url';
+import avaxIcon from '../assets/crypto/avax.svg?url';
+import uniIcon from '../assets/crypto/uni.svg?url';
+import atomIcon from '../assets/crypto/atom.svg?url';
+import dogeIcon from '../assets/crypto/doge.svg?url';
+import shibIcon from '../assets/crypto/shib.svg?url';
+import genericIcon from '../assets/crypto/generic.svg?url';
+
+// Manual mapping of crypto icons we support
+const CRYPTO_URLS = {
+    'btc': btcIcon, 'eth': ethIcon, 'ada': adaIcon, 'xrp': xrpIcon,
+    'ltc': ltcIcon, 'bch': bchIcon, 'dot': dotIcon, 'link': linkIcon,
+    'bnb': bnbIcon, 'sol': solIcon, 'matic': maticIcon, 'avax': avaxIcon,
+    'uni': uniIcon, 'atom': atomIcon, 'doge': dogeIcon, 'shib': shibIcon,
+    'generic': genericIcon
+};
+
+// Import flag URLs from flags.js to avoid circular dependency
+import { getFlagSvgPath } from './flags.js';
+
 /**
  * Get crypto icon SVG path for a cryptocurrency symbol
  * @param {string} cryptoSymbol - Crypto symbol (e.g., 'BTC', 'ETH', 'ADA')
  * @returns {string} SVG import path
  */
 export function getCryptoIconPath(cryptoSymbol) {
-    if (!cryptoSymbol) {
-        return '/node_modules/cryptocurrency-icons/svg/color/generic.svg'; // Fallback to generic crypto icon
-    }
-    
-    const symbol = cryptoSymbol.toLowerCase();
-    return `/node_modules/cryptocurrency-icons/svg/color/${symbol}.svg`;
+    const symbol = (cryptoSymbol || 'generic').toLowerCase();
+    return CRYPTO_URLS[symbol] || CRYPTO_URLS['generic'] || '';
 }
 
 /**
@@ -33,9 +60,8 @@ export function createCryptoIcon(cryptoSymbol, altText = '', className = 'crypto
     
     // Fallback to generic crypto icon on error
     img.onerror = () => {
-        if (img.src !== getCryptoIconPath('generic')) {
-            img.src = getCryptoIconPath('generic');
-        }
+        const fallback = getCryptoIconPath('generic');
+        if (fallback && img.src !== fallback) img.src = fallback;
     };
     
     return img;
@@ -92,10 +118,8 @@ export function getCurrencyIcon(currencyCode, countryCode = null) {
             alt: `${currencyCode} cryptocurrency`
         };
     } else {
-        // Use flag icon for fiat currencies
-        const flagPath = countryCode 
-            ? `/node_modules/country-flag-icons/3x2/${countryCode.toUpperCase()}.svg`
-            : `/node_modules/country-flag-icons/3x2/UN.svg`;
+        // Use flag icon for fiat currencies via flags.js
+        const flagPath = getFlagSvgPath(countryCode || 'UN');
         
         return {
             type: 'flag',
@@ -126,7 +150,7 @@ export function createCurrencyIcon(currencyCode, countryCode = null, className =
         if (iconInfo.type === 'crypto') {
             img.src = getCryptoIconPath('generic');
         } else {
-            img.src = '/node_modules/country-flag-icons/3x2/UN.svg';
+            img.src = getFlagSvgPath('UN');
         }
     };
     
@@ -153,7 +177,7 @@ export function updateCurrencyIcon(imgElement, currencyCode, countryCode = null)
         if (iconInfo.type === 'crypto') {
             imgElement.src = getCryptoIconPath('generic');
         } else {
-            imgElement.src = '/node_modules/country-flag-icons/3x2/UN.svg';
+            imgElement.src = getFlagSvgPath('UN');
         }
     };
 }
