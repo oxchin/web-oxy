@@ -275,6 +275,99 @@ function getCountryFromCurrency(currencyCode) {
     return currency?.country || currencyCode.slice(0, 2).toLowerCase();
 }
 
+// ===== MINI TICKERS (below chart) =====
+// Text-only, fixed base = USD, 5 targets (default includes current app default SGD)
+const MINI_TICKER_BASE = 'USD';
+const MINI_TICKER_TARGETS = ['IDR', 'JPY', 'AUD', 'NOK', 'GBP'];
+
+let miniTickerLastRates = {}; // key: BASE_QUOTE -> last rate
+let miniTickerSimInterval = null;
+
+function renderMiniTickers(items) {
+    const host = document.getElementById('mini-tickers');
+    if (!host) return;
+    const html = items.map(it => {
+        const priceStr = (typeof it.rate === 'number') ? formatNumberDisplay(Number(it.rate).toFixed(6)) : '—';
+        const changeCls = (typeof it.change === 'number') ? (it.change >= 0 ? 'up' : 'down') : '';
+        const sign = (typeof it.change === 'number') ? (it.change >= 0 ? '+' : '') : '';
+        const changeStr = (typeof it.change === 'number') ? `${sign}${it.change.toFixed(2)}%` : '';
+        return `
+        <div class="mini-ticker" data-target="${it.target}">
+            <div class="mini-header">
+                <span class="mini-code">${it.target}</span>
+                <span class="mini-change ${changeCls}">${changeStr}</span>
+            </div>
+            <div class="mini-price">${priceStr}</div>
+        </div>`;
+    }).join('');
+    host.innerHTML = html;
+}
+
+async function updateMiniTickers() {
+    try {
+        const host = document.getElementById('mini-tickers');
+        if (!host) return;
+        const batch = await fetchBatchExchangeRates([MINI_TICKER_BASE]);
+        const map = batch && batch.results ? batch.results : {};
+        const baseRates = map[MINI_TICKER_BASE] && map[MINI_TICKER_BASE].conversion_rates ? map[MINI_TICKER_BASE].conversion_rates : null;
+        const next = MINI_TICKER_TARGETS.map(target => {
+            const key = `${MINI_TICKER_BASE}_${target}`;
+            const rate = baseRates && typeof baseRates[target] === 'number' ? baseRates[target] : null;
+            let change = null;
+            if (typeof rate === 'number' && typeof miniTickerLastRates[key] === 'number' && miniTickerLastRates[key] > 0) {
+                change = ((rate - miniTickerLastRates[key]) / miniTickerLastRates[key]) * 100;
+            }
+            if (typeof rate === 'number') miniTickerLastRates[key] = rate;
+            return { target, rate, change };
+        });
+        renderMiniTickers(next);
+    } catch (err) {
+        console.error('❌ Mini tickers update failed:', err);
+    }
+}
+
+function mountMiniTickers() {
+    const host = document.getElementById('mini-tickers');
+    if (!host) return;
+    // Initial skeleton
+    renderMiniTickers(MINI_TICKER_TARGETS.map(target => ({ target, rate: null, change: null })));
+    // Initial fetch and periodic refresh
+    updateMiniTickers();
+    setInterval(updateMiniTickers, 60_000);
+    // Start simulation in development for fake live movement
+    if (CONFIG.DEBUG_MODE) startMiniTickerSimulation();
+}
+
+function startMiniTickerSimulation() {
+    if (miniTickerSimInterval) return;
+    const baselines = {
+        'USD_IDR': 15500,
+        'USD_JPY': 150.0,
+        'USD_AUD': 0.66,
+        'USD_NOK': 10.7,
+        'USD_GBP': 0.79
+    };
+    const stepMs = 3000; // every 3s
+    miniTickerSimInterval = setInterval(() => {
+        try {
+            const next = MINI_TICKER_TARGETS.map(target => {
+                const key = `${MINI_TICKER_BASE}_${target}`;
+                const last = (typeof miniTickerLastRates[key] === 'number') ? miniTickerLastRates[key] : (baselines[key] || 1);
+                // small random delta ±0.2%
+                const delta = (Math.random() - 0.5) * 0.004; // -0.2% .. +0.2%
+                const rate = Math.max(0.000001, last * (1 + delta));
+                miniTickerLastRates[key] = rate;
+                return { target, rate, change: delta * 100 };
+            });
+            renderMiniTickers(next);
+        } catch (e) {
+            // If anything goes wrong, stop simulation silently
+            clearInterval(miniTickerSimInterval);
+            miniTickerSimInterval = null;
+        }
+    }, stepMs);
+}
+
 // ===== INTELLIGENT SEARCH ENGINE =====
 // Advanced fuzzy search with ML-like pattern matching
 function calculateSearchScore(currency, query) {
@@ -1473,6 +1566,8 @@ async function initApp() {
     initializeKeyboardShortcuts();
     initializePerformanceDashboard();
     initializeOfflineMode();
+    // Mount mini tickers (5 fiat overview below chart)
+    mountMiniTickers();
 
     // Initial display message is hidden; use the Help icon to show usage modal instead
     if (exRateTxt) exRateTxt.innerText = "";

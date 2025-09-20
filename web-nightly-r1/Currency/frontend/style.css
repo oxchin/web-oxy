@@ -1020,6 +1020,104 @@ body::after {
     will-change: transform;
 }
 
+/* ===== MINI TICKERS (5 fiat) ===== */
+.mini-tickers {
+  display: flex;
+  flex-wrap: nowrap; /* one row */
+  justify-content: space-between; /* fixed tiles, no expand */
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  background: none;
+  border: none;
+  overflow: hidden; /* do not auto-scroll/expand */
+}
+
+.mini-ticker {
+  flex: 0 0 180px; /* fixed size tile */
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(66,133,244,0.25);
+  background: radial-gradient(ellipse at top left, rgba(66, 133, 244, 0.15) 0%, transparent 50%),
+  radial-gradient(ellipse at bottom right, rgba(156, 39, 176, 0.12) 0%, transparent 50%),
+  radial-gradient(ellipse at center, rgba(139, 92, 246, 0.12) 0%, transparent 70%),
+  linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
+}
+
+/* Header row: code (left) and change badge (right) */
+.mini-ticker .mini-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mini-ticker .mini-code {
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-color);
+}
+
+.mini-ticker .mini-price {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--value-color);
+  font-variant-numeric: tabular-nums;
+}
+
+.mini-ticker .mini-change {
+  justify-self: end;
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  display: inline-flex;           /* arrow + value inline */
+  align-items: center;
+  gap: 6px;                       /* space between arrow and text */
+}
+
+.mini-ticker .mini-change.up::before {
+  content: '▲';
+  font-size: 0.85rem;
+  line-height: 1;
+  color: currentColor;            /* match pill color */
+}
+
+.mini-ticker .mini-change.down::before {
+  content: '▼';
+  font-size: 0.85rem;
+  line-height: 1;
+  color: currentColor;
+}
+
+.mini-change.up {
+  color: #10b981;
+  border-color: rgba(16,185,129,0.4);
+  background:
+    radial-gradient(ellipse at top left, rgba(34,197,94,0.12) 0%, transparent 60%),
+    rgba(34,197,94,0.08);
+}
+
+.mini-change.down {
+  color: #ef4444;
+  border-color: rgba(239,68,68,0.4);
+  background:
+    radial-gradient(ellipse at top left, rgba(239,68,68,0.12) 0%, transparent 60%),
+    rgba(239,68,68,0.08);
+}
+
+@media (max-width: 900px) {
+  .mini-ticker { flex: 0 0 150px; width: 150px; }
+}
+
 /* Make the canvas fill the wrapper fully */
 #exchangeRateChart {
     display: block;
