@@ -15,13 +15,13 @@
         <!-- Animated Logo Header -->
         <div class="brand">
             <div class="brand-ring ring-outer"></div>
-            <div class="brand-ring ring-gold"></div>
+            <div class="brand-ring ring-purple"></div>
             <div class="brand-ring ring-inner"></div>
             <div class="brand-logo">
                 <img src="assets/kconvert-logo-orig.webp" alt="Kconvert logo" />
             </div>
         </div>
-        <h2 class="app-title">Kconvert App</h2>
+        <h2 class="app-title">Kconvert</h2>
         <p class="app-subtitle">Simple professional currency converter with real-time rates</p>
         
         <!-- Feature Icons Section -->
@@ -101,15 +101,15 @@
               <div class="result" aria-live="polite">Ready to convert</div>
               <!-- Inline help icon (opens floating modal with instructions) -->
               <span id="help-icon" class="info-help-icon" aria-label="Show usage help" tabindex="0">?</span>
-              <button type="submit" id="convert-button"><i class="fas fa-arrow-right"></i><span>Convert</span></button>
-              <button type="reset" id="reset-button"><i class="fas fa-rotate-left"></i><span>Reset</span></button> <!-- Keep inside container -->
+              <button type="submit" id="convert-button">Convert</button>
+              <button type="reset" id="reset-button">Reset</button> <!-- Keep inside container -->
           </div>
       </form>
   </div>
 
     <!-- Third Container: Chart Graphics -->
     <div class="container chart-container container--3">
-        <h2 class="section-title">Exchange Rate Chart</h2>
+        <h2 class="section-title">Live Exchange Rate Trends</h2>
         
         <!-- Chart Type Controls -->
         <div class="chart-type-controls">
@@ -140,6 +140,9 @@
         </div>
         <div class="chart-wrapper">
             <canvas id="exchangeRateChart"></canvas>
+        </div>
+        <div class="chart-2">
+          <p>small indicator for here 5 fiat currency</p>
         </div>
         <div class="chart-info">
             <div class="live-indicator">
@@ -257,19 +260,19 @@
 
     <!-- Five Container: About Kconvert App -->
     <div class="container about-container container--7">
-        <h2 class="section-title">About the Kconvert app</h2>
+        <h2 class="section-title">About Kconvert</h2>
         <div class="section-content">
-            <p>Built by Team 6 to solve real currency conversion problems. We focused on simplicity without sacrificing functionality.</p>
+            <p>Kconvert is designed to make currency conversion seamless, reliable, and future-ready. Our mission is simple: deliver accurate exchange data with an elegant experience that feels effortless.</p>
             
             <p><strong>Why Kconvert is different:</strong></p>
             <ul class="benefits-list">
-                <li>Clean, modern interface that just works</li>
-                <li>No ads or premium subscriptions</li>
-                <li>Open-source and completely free</li>
-                <li>Fast loading, no bloated features</li>
+                <li>Intuitive Design – clean, modern UI crafted for clarity and focus.</li>
+                <li>Transparent & Open – fully open-source under GPL-3.0; inspect, modify, and contribute freely.</li>
+                <li>Built for Everyone – from casual travelers to financial analysts, Kconvert adapts to your needs.</li>
+                <li>Supported by open donations: free to use, sustained by those who value it</li>
             </ul>
             
-            <p class="features-text">Licensed under GPL-3.0 – use, modify, and share freely.</p>
+            <p class="features-text">Kconvert isn’t just another converter — it’s a trustworthy tool built to last, evolving with the fast-moving world of global currencies.</p>
             
             <div class="project-info">
                 <div class="info-item">
